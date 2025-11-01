@@ -1,0 +1,21 @@
+
+{
+  "short_name": "حرفي",
+  "name": "حرفي: دليلك للحرفيين في سوريا",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#3a6679",
+  "background_color": "#F9FAFB"
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>حرفي: دليلك للحرفيين في سوريا</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Tajawal', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                '50': '#f0f7f8',
+                '100': '#e0eff1',
+                '200': '#c4e0e5',
+                '300': '#9dcad3',
+                '400': '#72aec0',
+                '500': '#5594ab',
+                '600': '#457c91',
+                '700': '#3a6679', // Main dark color
+                '800': '#335564',
+                '900': '#2f4a56',
+                '950': '#1d2f38',
+              },
+              accent: {
+                '50': '#fefbec',
+                '100': '#fcf3d1',
+                '200': '#fae7a1',
+                '300': '#f7d36b',
+                '400': '#f4b83f',
+                '500': '#f2a623',
+                '600': '#d58717',
+                '700': '#b26916',
+                '800': '#915318',
+                '900': '#76441a',
+                '950': '#41220b',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#3a6679">
+    
+    <!-- Apple PWA tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <style>
+      body {
+        -webkit-tap-highlight-color: transparent;
+        font-family: 'Tajawal', sans-serif;
+      }
+      @keyframes toast-in-out {
+        0% { transform: translateY(200%); opacity: 0; }
+        10% { transform: translateY(0); opacity: 1; }
+        90% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(200%); opacity: 0; }
+      }
+      .toast-animate {
+        animation: toast-in-out 3.5s ease-out forwards;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "webworker": "https://aistudiocdn.com/webworker@^0.8.4"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
