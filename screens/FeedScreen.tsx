@@ -1,10 +1,10 @@
 import React, { useState, useContext, useMemo } from 'react';
 import CraftsmanCard from '../components/CraftsmanCard';
 import Modal from '../components/Modal';
-import { useCraftsmen } from '../hooks/useCraftsmen';
+import { useCraftsmen, CraftsmanFormData } from '../hooks/useCraftsmen';
 import { Craftsman, Governorate } from '../types';
 import { AdminContext } from '../context/AdminContext';
-import { PlusIcon, LocationIcon, StarIcon, PhoneIcon, WhatsappIcon, CloseIcon, SearchIcon, CheckCircleIcon } from '../components/Icons';
+import { PlusIcon, LocationIcon, StarIcon, PhoneIcon, WhatsappIcon, CloseIcon, SearchIcon } from '../components/Icons';
 import { GOVERNORATES } from '../constants';
 import SkeletonLoader from '../components/SkeletonLoader';
 import Toast from '../components/Toast';
@@ -120,69 +120,67 @@ const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => vo
   </div>
 );
 
-const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: any) => void; onCancel: () => void }> = ({ craftsman, onSave, onCancel }) => {
-    const [formData, setFormData] = useState({
+const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanFormData) => Promise<void>; onCancel: () => void }> = ({ craftsman, onSave, onCancel }) => {
+    const [isSaving, setIsSaving] = useState(false);
+    const [formData, setFormData] = useState<CraftsmanFormData>({
         name: craftsman?.name || '',
         craft: craftsman?.craft || '',
         governorate: craftsman?.governorate || 'دمشق',
         bio: craftsman?.bio || '',
+        phone: craftsman?.phone || '',
         avatarUrl: craftsman?.avatarUrl || '',
         headerImageUrl: craftsman?.headerImageUrl || '',
-        phone: craftsman?.phone || '',
-        portfolio: craftsman?.portfolio || [] as string[],
+        portfolio: craftsman?.portfolio || [],
     });
-
+    
+    // Previews for existing URLs or newly selected files
     const [avatarPreview, setAvatarPreview] = useState<string | null>(craftsman?.avatarUrl || null);
     const [headerPreview, setHeaderPreview] = useState<string | null>(craftsman?.headerImageUrl || null);
     const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>(craftsman?.portfolio || []);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'avatarUrl' | 'headerImageUrl') => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'avatarFile' | 'headerFile') => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setFormData(prev => ({ ...prev, [field]: base64String }));
-                if (field === 'avatarUrl') setAvatarPreview(base64String);
-                else setHeaderPreview(base64String);
-            };
-            reader.readAsDataURL(file);
+            setFormData(prev => ({ ...prev, [field]: file }));
+            const previewUrl = URL.createObjectURL(file);
+            if (field === 'avatarFile') setAvatarPreview(previewUrl);
+            else setHeaderPreview(previewUrl);
         }
     };
 
     const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (files) {
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64String = reader.result as string;
-                    setPortfolioPreviews(prev => [...prev, base64String]);
-                    setFormData(prev => ({...prev, portfolio: [...prev.portfolio, base64String]}));
-                };
-                reader.readAsDataURL(file);
-            });
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+            setFormData(prev => ({ ...prev, portfolioFiles: [...(prev.portfolioFiles || []), ...newFiles]}));
+            const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+            setPortfolioPreviews(prev => [...prev, ...newPreviews]);
         }
     };
 
     const removePortfolioImage = (index: number) => {
-        const updatedPreviews = portfolioPreviews.filter((_, i) => i !== index);
-        setPortfolioPreviews(updatedPreviews);
-        setFormData(prev => ({...prev, portfolio: updatedPreviews}));
+      // This is more complex now with files and URLs.
+      // For simplicity, we'll handle removing from existing portfolio URLs. New files can't be removed easily without more state.
+      const imageUrlToRemove = portfolioPreviews[index];
+      setPortfolioPreviews(prev => prev.filter((_, i) => i !== index));
+      setFormData(prev => ({ ...prev, portfolio: prev.portfolio.filter(url => url !== imageUrlToRemove)}));
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!craftsman && (!formData.avatarUrl || !formData.headerImageUrl)) {
-            alert("يرجى رفع الصورة الشخصية وصورة الغلاف.");
+        if (!craftsman && !formData.avatarFile) {
+            alert("يرجى رفع الصورة الشخصية.");
             return;
         }
-        onSave(formData);
+        setIsSaving(true);
+        await onSave(formData);
+        setIsSaving(false);
     };
 
     const inputClass = "w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition";
@@ -198,13 +196,13 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: any) => vo
             
             <div>
                 <label className="block mb-1 font-semibold">الصورة الشخصية:</label>
-                <label className={fileInputLabelClass}><span>{avatarPreview ? "تغيير الصورة" : "اختر ملف..."}</span><input type="file" onChange={(e) => handleFileChange(e, 'avatarUrl')} className="hidden" accept="image/*" /></label>
+                <label className={fileInputLabelClass}><span>{avatarPreview ? "تغيير الصورة" : "اختر ملف..."}</span><input type="file" onChange={(e) => handleFileChange(e, 'avatarFile')} className="hidden" accept="image/*" /></label>
                 {avatarPreview && <img src={avatarPreview} alt="معاينة" className="mt-2 w-24 h-24 rounded-full object-cover mx-auto" />}
             </div>
 
             <div>
                 <label className="block mb-1 font-semibold">صورة الغلاف:</label>
-                 <label className={fileInputLabelClass}><span>{headerPreview ? "تغيير الصورة" : "اختر ملف..."}</span><input type="file" onChange={(e) => handleFileChange(e, 'headerImageUrl')} className="hidden" accept="image/*" /></label>
+                 <label className={fileInputLabelClass}><span>{headerPreview ? "تغيير الصورة" : "اختر ملف..."}</span><input type="file" onChange={(e) => handleFileChange(e, 'headerFile')} className="hidden" accept="image/*" /></label>
                 {headerPreview && <img src={headerPreview} alt="معاينة" className="mt-2 w-full h-32 object-cover rounded-md" />}
             </div>
 
@@ -222,8 +220,10 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: any) => vo
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-                <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">إلغاء</button>
-                <button type="submit" className="px-4 py-2 bg-brand-700 text-white rounded-md hover:bg-brand-800">حفظ</button>
+                <button type="button" onClick={onCancel} disabled={isSaving} className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50">إلغاء</button>
+                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-brand-700 text-white rounded-md hover:bg-brand-800 disabled:bg-brand-900 disabled:cursor-wait">
+                    {isSaving ? 'جارٍ الحفظ...' : 'حفظ'}
+                </button>
             </div>
         </form>
     );
@@ -231,8 +231,7 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: any) => vo
 
 
 const FeedScreen: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const { craftsmen, addCraftsman, updateCraftsman, deleteCraftsman, rateCraftsman } = useCraftsmen();
+  const { craftsmen, loading, addCraftsman, updateCraftsman, deleteCraftsman, rateCraftsman } = useCraftsmen();
   const { isAdmin } = useContext(AdminContext);
 
   const [selectedCraftsman, setSelectedCraftsman] = useState<Craftsman | null>(null);
@@ -262,35 +261,29 @@ const FeedScreen: React.FC = () => {
     });
   }, [craftsmen, searchTerm, selectedGovernorate, selectedCraft]);
 
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleSave = (data: any) => {
+  const handleSave = async (data: CraftsmanFormData) => {
     if (editingCraftsman) {
-        updateCraftsman({ ...editingCraftsman, ...data });
+        await updateCraftsman(editingCraftsman.id, data);
         setToastMessage('تم تحديث البيانات بنجاح');
     } else if (isAdding) {
-        addCraftsman(data);
+        await addCraftsman(data);
         setToastMessage('تم إضافة الحرفي بنجاح');
     }
     setEditingCraftsman(null);
     setIsAdding(false);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deletingCraftsman) {
-        deleteCraftsman(deletingCraftsman.id);
+        await deleteCraftsman(deletingCraftsman.id);
         setToastMessage('تم حذف الحرفي بنجاح');
         setDeletingCraftsman(null);
     }
   };
 
-  const handleRateSubmit = (rating: number) => {
+  const handleRateSubmit = async (rating: number) => {
     if(ratingCraftsman) {
-        rateCraftsman(ratingCraftsman.id, rating);
+        await rateCraftsman(ratingCraftsman.id, rating);
         setToastMessage('شكراً لك، تم تسجيل تقييمك');
         setRatingCraftsman(null);
     }
