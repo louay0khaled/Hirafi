@@ -9,8 +9,8 @@ export interface Craftsman {
   craft: string;
   governorate: Governorate;
   bio: string;
-  avatarUrl: string;
-  headerImageUrl: string;
+  avatar_url: string;
+  header_image_url: string;
   portfolio: string[];
   rating: number;
   reviews: number;

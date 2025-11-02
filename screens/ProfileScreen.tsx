@@ -41,7 +41,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ craftsmanId }) => {
   return (
     <div className="max-w-lg mx-auto bg-white min-h-screen">
       <header className="relative">
-        <img src={craftsman.headerImageUrl} alt={`${craftsman.name} header`} className="w-full h-40 object-cover" />
+        <img src={craftsman.header_image_url} alt={`${craftsman.name} header`} className="w-full h-40 object-cover" />
         <div className="absolute top-0 right-0 left-0 bg-gradient-to-b from-black/50 to-transparent p-4 flex justify-between items-center">
           <a href="#browse" className="text-white bg-black/30 rounded-full p-2 hover:bg-black/50 transition-colors">
             <BackIcon />
@@ -51,7 +51,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ craftsmanId }) => {
           </button>
         </div>
         <div className="absolute -bottom-12 start-1/2 -translate-x-1/2">
-          <img src={craftsman.avatarUrl} alt={craftsman.name} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg" />
+          <img src={craftsman.avatar_url} alt={craftsman.name} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg" />
         </div>
       </header>
 

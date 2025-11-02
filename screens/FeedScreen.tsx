@@ -56,10 +56,10 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
 
 const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => void; }> = ({ craftsman, onStartRating }) => (
   <div>
-    <img src={craftsman.headerImageUrl} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg" />
+    <img src={craftsman.header_image_url} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg" />
     <div className="p-4">
         <div className="flex items-center mb-4">
-            <img src={craftsman.avatarUrl} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg" />
+            <img src={craftsman.avatar_url} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg" />
             <div className="ms-4">
                 <h3 className="text-xl font-bold">{craftsman.name}</h3>
                 <p className="text-brand-700">{craftsman.craft}</p>
@@ -128,14 +128,14 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
         governorate: craftsman?.governorate || 'دمشق',
         bio: craftsman?.bio || '',
         phone: craftsman?.phone || '',
-        avatarUrl: craftsman?.avatarUrl || '',
-        headerImageUrl: craftsman?.headerImageUrl || '',
+        avatar_url: craftsman?.avatar_url || '',
+        header_image_url: craftsman?.header_image_url || '',
         portfolio: craftsman?.portfolio || [],
     });
     
     // Previews for existing URLs or newly selected files
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(craftsman?.avatarUrl || null);
-    const [headerPreview, setHeaderPreview] = useState<string | null>(craftsman?.headerImageUrl || null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(craftsman?.avatar_url || null);
+    const [headerPreview, setHeaderPreview] = useState<string | null>(craftsman?.header_image_url || null);
     const [portfolioPreviews, setPortfolioPreviews] = useState<string[]>(craftsman?.portfolio || []);
 
 

@@ -9,10 +9,10 @@ import { LocationIcon, StarIcon, PhoneIcon } from '../components/Icons';
 // This component was copied from FeedScreen.tsx to be used in the details modal.
 const CraftsmanDetails: React.FC<{ craftsman: Craftsman }> = ({ craftsman }) => (
   <div>
-    <img src={craftsman.headerImageUrl} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg" />
+    <img src={craftsman.header_image_url} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg" />
     <div className="p-4">
         <div className="flex items-center mb-4">
-            <img src={craftsman.avatarUrl} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg" />
+            <img src={craftsman.avatar_url} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg" />
             <div className="ms-4">
                 <h3 className="text-xl font-bold">{craftsman.name}</h3>
                 <p className="text-brand-700">{craftsman.craft}</p>

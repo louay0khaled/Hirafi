@@ -3,13 +3,13 @@ import { Craftsman } from '../types';
 import { supabase } from '../lib/supabaseClient';
 
 // Type for form data which can include File objects for new uploads
-export type CraftsmanFormData = Omit<Craftsman, 'id' | 'rating' | 'reviews' | 'avatarUrl' | 'headerImageUrl' | 'portfolio'> & {
+export type CraftsmanFormData = Omit<Craftsman, 'id' | 'rating' | 'reviews' | 'avatar_url' | 'header_image_url' | 'portfolio'> & {
   avatarFile?: File;
   headerFile?: File;
   portfolioFiles?: File[];
   // These are still needed for existing image URLs during editing
-  avatarUrl: string;
-  headerImageUrl: string;
+  avatar_url: string;
+  header_image_url: string;
   portfolio: string[];
 };
 
@@ -25,7 +25,7 @@ export const useCraftsmen = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching craftsmen:', error);
+      console.error('Error fetching craftsmen:', error.message);
     } else {
       setCraftsmen(data as Craftsman[]);
     }
@@ -42,7 +42,7 @@ export const useCraftsmen = () => {
       upsert: true, // Overwrite file if it exists
     });
     if (error) {
-      console.error(`Error uploading file to ${path}:`, error);
+      console.error(`Error uploading file to ${path}:`, error.message);
       return null;
     }
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path);
@@ -75,8 +75,8 @@ export const useCraftsmen = () => {
       governorate: formData.governorate,
       bio: formData.bio,
       phone: formData.phone,
-      avatarUrl,
-      headerImageUrl,
+      avatar_url: avatarUrl,
+      header_image_url: headerImageUrl,
       portfolio: portfolioUrls,
       rating: 0,
       reviews: 0,
@@ -85,20 +85,20 @@ export const useCraftsmen = () => {
     const { data, error } = await supabase.from('craftsmen').insert([newCraftsmanData]).select();
     
     if (error) {
-      console.error('Error adding craftsman:', error);
+      console.error('Error adding craftsman:', error.message);
     } else if (data) {
       setCraftsmen(prev => [data[0] as Craftsman, ...prev]);
     }
   };
 
   const updateCraftsman = async (craftsmanId: string, formData: CraftsmanFormData) => {
-      let { avatarUrl, headerImageUrl, portfolio } = formData;
+      let { avatar_url, header_image_url, portfolio } = formData;
   
       if (formData.avatarFile) {
-        avatarUrl = await uploadFile(formData.avatarFile, 'craftsmen-images', `public/avatars/${craftsmanId}`) || formData.avatarUrl;
+        avatar_url = await uploadFile(formData.avatarFile, 'craftsmen-images', `public/avatars/${craftsmanId}`) || formData.avatar_url;
       }
       if (formData.headerFile) {
-        headerImageUrl = await uploadFile(formData.headerFile, 'craftsmen-images', `public/headers/${craftsmanId}`) || formData.headerImageUrl;
+        header_image_url = await uploadFile(formData.headerFile, 'craftsmen-images', `public/headers/${craftsmanId}`) || formData.header_image_url;
       }
       
       const newPortfolioUrls: string[] = [];
@@ -115,15 +115,15 @@ export const useCraftsmen = () => {
         governorate: formData.governorate,
         bio: formData.bio,
         phone: formData.phone,
-        avatarUrl,
-        headerImageUrl,
+        avatar_url,
+        header_image_url,
         portfolio: [...portfolio, ...newPortfolioUrls] // Combine old and new portfolio images
       };
 
       const { data, error } = await supabase.from('craftsmen').update(updatedData).eq('id', craftsmanId).select();
 
       if (error) {
-        console.error('Error updating craftsman:', error);
+        console.error('Error updating craftsman:', error.message);
       } else if (data) {
         setCraftsmen(prev => prev.map(c => c.id === craftsmanId ? data[0] as Craftsman : c));
       }
@@ -134,7 +134,7 @@ export const useCraftsmen = () => {
     // Note: Deleting files from storage can be added here if needed
     const { error } = await supabase.from('craftsmen').delete().eq('id', craftsmanId);
     if (error) {
-      console.error('Error deleting craftsman:', error);
+      console.error('Error deleting craftsman:', error.message);
     } else {
       setCraftsmen(prev => prev.filter(c => c.id !== craftsmanId));
     }
@@ -154,7 +154,7 @@ export const useCraftsmen = () => {
       .eq('id', craftsmanId);
       
     if (error) {
-      console.error('Error rating craftsman:', error);
+      console.error('Error rating craftsman:', error.message);
     } else {
       fetchCraftsmen(); // Re-fetch to get the most accurate data
     }

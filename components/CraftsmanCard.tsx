@@ -18,7 +18,7 @@ const CraftsmanCard: React.FC<CraftsmanCardProps> = ({ craftsman, onView, onEdit
       <div className="flex items-center p-4" onClick={() => onView(craftsman)} style={{ cursor: 'pointer' }}>
         <img
           className="w-20 h-20 rounded-full object-cover border-4 border-gray-200"
-          src={craftsman.avatarUrl}
+          src={craftsman.avatar_url}
           alt={craftsman.name}
         />
         <div className="ms-4 flex-1">
