@@ -56,10 +56,7 @@ export const useCraftsmen = () => {
         const { data: publicUrlData } = supabase.storage
           .from(BUCKET_NAME)
           .getPublicUrl(path);
-      // Remove Supabase's 't' query parameter for a clean, permanent URL
-      const url = new URL(publicUrlData.publicUrl);
-      url.searchParams.delete('t');
-      return url.toString();
+      return publicUrlData.publicUrl;
     }
     return null;
   };
