@@ -59,10 +59,20 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
 
 const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => void; }> = ({ craftsman, onStartRating }) => (
   <div>
-    <img src={craftsman.header_image_url || HEADER_PLACEHOLDER} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg bg-gray-200" />
+    <div 
+      className="w-full h-40 bg-cover bg-center rounded-t-lg bg-gray-200"
+      style={{ backgroundImage: `url(${craftsman.header_image_url || HEADER_PLACEHOLDER})` }}
+      role="img"
+      aria-label={`${craftsman.name} header`}
+    />
     <div className="p-4">
         <div className="flex items-center mb-4">
-            <img src={craftsman.avatar_url || AVATAR_PLACEHOLDER} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg bg-gray-200" />
+            <div 
+              className="w-20 h-20 rounded-full bg-cover bg-center border-4 border-white -mt-12 shadow-lg bg-gray-200"
+              style={{ backgroundImage: `url(${craftsman.avatar_url || AVATAR_PLACEHOLDER})` }}
+              role="img"
+              aria-label={craftsman.name}
+            />
             <div className="ms-4">
                 <h3 className="text-xl font-bold">{craftsman.name}</h3>
                 <p className="text-brand-700">{craftsman.craft}</p>
@@ -113,7 +123,12 @@ const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => vo
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {craftsman.portfolio.map((imgUrl, index) => (
                   <div key={index} className="aspect-square">
-                    <img src={imgUrl} alt={`Portfolio work ${index + 1}`} className="w-full h-full object-cover rounded-lg shadow-sm" />
+                    <div 
+                      className="w-full h-full bg-cover bg-center rounded-lg shadow-sm"
+                      style={{ backgroundImage: `url(${imgUrl})` }}
+                      role="img"
+                      aria-label={`Portfolio work ${index + 1}`}
+                    />
                   </div>
                 ))}
             </div>

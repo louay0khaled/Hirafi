@@ -6,13 +6,27 @@ import { Craftsman } from '../types';
 import Modal from '../components/Modal';
 import { LocationIcon, StarIcon, PhoneIcon } from '../components/Icons';
 
+const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
+const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI5MDAiLz48L3N2Zz4=';
+
+
 // This component was copied from FeedScreen.tsx to be used in the details modal.
 const CraftsmanDetails: React.FC<{ craftsman: Craftsman }> = ({ craftsman }) => (
   <div>
-    <img src={craftsman.header_image_url} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg" />
+    <div
+      className="w-full h-40 bg-cover bg-center rounded-t-lg bg-gray-200"
+      style={{ backgroundImage: `url(${craftsman.header_image_url || HEADER_PLACEHOLDER})` }}
+      role="img"
+      aria-label={`${craftsman.name} header`}
+    />
     <div className="p-4">
         <div className="flex items-center mb-4">
-            <img src={craftsman.avatar_url} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg" />
+            <div
+              className="w-20 h-20 rounded-full bg-cover bg-center border-4 border-white -mt-12 shadow-lg bg-gray-200"
+              style={{ backgroundImage: `url(${craftsman.avatar_url || AVATAR_PLACEHOLDER})` }}
+              role="img"
+              aria-label={craftsman.name}
+            />
             <div className="ms-4">
                 <h3 className="text-xl font-bold">{craftsman.name}</h3>
                 <p className="text-brand-700">{craftsman.craft}</p>
@@ -41,7 +55,12 @@ const CraftsmanDetails: React.FC<{ craftsman: Craftsman }> = ({ craftsman }) => 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {craftsman.portfolio.map((imgUrl, index) => (
               <div key={index} className="aspect-square">
-                <img src={imgUrl} alt={`Portfolio work ${index + 1}`} className="w-full h-full object-cover rounded-lg shadow-sm" />
+                 <div 
+                    className="w-full h-full bg-cover bg-center rounded-lg shadow-sm"
+                    style={{ backgroundImage: `url(${imgUrl})` }}
+                    role="img"
+                    aria-label={`Portfolio work ${index + 1}`}
+                />
               </div>
             ))}
         </div>

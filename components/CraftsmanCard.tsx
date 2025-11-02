@@ -14,15 +14,17 @@ const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3
 
 const CraftsmanCard: React.FC<CraftsmanCardProps> = ({ craftsman, onView, onEdit, onDelete }) => {
   const { isAdmin } = useContext(AdminContext);
+  const imageUrl = craftsman.avatar_url || AVATAR_PLACEHOLDER;
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden m-2 relative transition-transform duration-200 hover:scale-105">
       <div className="flex items-center p-4" onClick={() => onView(craftsman)} style={{ cursor: 'pointer' }}>
-        <img
-          className="w-20 h-20 rounded-full object-cover border-4 border-gray-200 bg-gray-200"
-          src={craftsman.avatar_url || AVATAR_PLACEHOLDER}
-          alt={craftsman.name}
-        />
+        <div
+          className="w-20 h-20 rounded-full flex-shrink-0 bg-cover bg-center border-4 border-gray-200 bg-gray-200"
+          style={{ backgroundImage: `url(${imageUrl})` }}
+          role="img"
+          aria-label={craftsman.name}
+        ></div>
         <div className="ms-4 flex-1">
           <h3 className="text-lg font-bold text-gray-800">{craftsman.name}</h3>
           <p className="text-sm text-brand-700 font-semibold">{craftsman.craft}</p>
