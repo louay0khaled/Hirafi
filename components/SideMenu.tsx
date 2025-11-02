@@ -46,51 +46,59 @@ const SideMenu: React.FC<SideMenuProps> = ({ isOpen, onClose }) => {
         onClick={onClose}
       />
       <div 
-        className={`fixed top-0 right-0 h-full w-72 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-80 max-w-[90vw] bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
-        <div className="flex justify-between items-center p-4 border-b">
+        {/* Header */}
+        <header className="flex justify-between items-center p-4 border-b flex-shrink-0">
           <h2 className="text-xl font-bold text-brand-700">القائمة</h2>
           <button onClick={onClose} className="p-2 text-gray-600 hover:bg-gray-100 rounded-full">
             <CloseIcon className="w-6 h-6" />
           </button>
-        </div>
-        <div className="p-4">
-          <p className="text-gray-600 mb-4">
-            هل أنت حرفي وترغب بالانضمام؟ تواصل معنا لنشر صفحتك.
-          </p>
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors duration-300 shadow-lg"
-          >
-            <WhatsappIcon className="me-2" />
-            تواصل عبر واتساب
-          </a>
-        </div>
-        {isAdmin && (
-            <>
-                <div className="p-4 border-t">
-                     <button
-                        onClick={handleLogout}
-                        className="flex items-center justify-center w-full bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-300 shadow-lg"
+        </header>
+
+        {/* Main Content */}
+        <div className="flex-grow overflow-y-auto">
+          <div className="p-4">
+            <p className="text-gray-600 mb-4 text-sm">
+              هل أنت حرفي وترغب بالانضمام؟ تواصل معنا لنشر صفحتك مجاناً.
+            </p>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-full bg-white text-green-600 font-semibold py-2.5 px-3 rounded-lg hover:bg-green-50 transition-colors duration-300 border-2 border-green-500"
+            >
+              <WhatsappIcon className="me-2 w-5 h-5" />
+              تواصل عبر واتساب
+            </a>
+          </div>
+          {isAdmin && (
+              <div className="p-4 border-t">
+                  <h3 className="text-sm font-semibold text-gray-500 mb-3 px-1">أدوات المدير</h3>
+                   <button
+                      onClick={() => setShowConfirmModal(true)}
+                      className="flex items-center w-full bg-gray-100 text-red-600 font-bold py-3 px-4 rounded-lg hover:bg-red-100 transition-colors duration-300 mb-3 text-sm"
                     >
-                        <LogoutIcon className="me-2" />
-                        تسجيل الخروج
+                      <DeleteIcon className="me-2 w-4 h-4" />
+                      مسح كل صور التخزين
                     </button>
-                </div>
-                <div className="p-4 border-t">
-                  <h3 className="text-sm font-semibold text-gray-500 mb-2">أدوات المدير</h3>
-                  <button
-                    onClick={() => setShowConfirmModal(true)}
-                    className="flex items-center justify-center w-full bg-gray-100 text-red-600 font-bold py-3 px-4 rounded-lg hover:bg-red-100 transition-colors duration-300"
+                   <button
+                      onClick={handleLogout}
+                      className="flex items-center w-full bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-300 text-sm"
                   >
-                    <DeleteIcon className="me-2" />
-                    مسح كل صور التخزين
+                      <LogoutIcon className="me-2 w-4 h-4" />
+                      تسجيل الخروج
                   </button>
-                </div>
-            </>
-        )}
+              </div>
+          )}
+        </div>
+        
+        {/* Footer */}
+        <footer className="p-4 border-t bg-gray-50 flex-shrink-0">
+          <p className="text-xs text-center text-gray-500">
+            تم تصميم هذا التطبيق بواسطة <span className="font-semibold text-brand-800">Loùay Ô Khałed</span>
+          </p>
+        </footer>
       </div>
       <Modal isOpen={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="تأكيد الحذف الشامل">
         <div>
