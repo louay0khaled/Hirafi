@@ -7,10 +7,10 @@ import { AdminContext } from '../context/AdminContext';
 import { PlusIcon, LocationIcon, StarIcon, PhoneIcon, WhatsappIcon, CloseIcon, SearchIcon } from '../components/Icons';
 import { GOVERNORATES } from '../constants';
 import SkeletonLoader from '../components/SkeletonLoader';
-import Toast from '../components/Toast';
+import { useToast } from '../context/ToastContext';
 
 const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
-const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI5MDAiLz48L3N2Zz4=';
+const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZHRoPSI5MDAiLz48L3N2Zz4=';
 
 const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => void; onClose: () => void; }> = ({ craftsman, onRate, onClose }) => {
     const [rating, setRating] = useState(0);
@@ -258,13 +258,13 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
 const FeedScreen: React.FC = () => {
   const { craftsmen, loading, addCraftsman, updateCraftsman, deleteCraftsman, rateCraftsman } = useCraftsmen();
   const { isAdmin } = useContext(AdminContext);
+  const { showToast } = useToast();
 
   const [selectedCraftsman, setSelectedCraftsman] = useState<Craftsman | null>(null);
   const [editingCraftsman, setEditingCraftsman] = useState<Craftsman | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingCraftsman, setDeletingCraftsman] = useState<Craftsman | null>(null);
   const [ratingCraftsman, setRatingCraftsman] = useState<Craftsman | null>(null);
-  const [toastMessage, setToastMessage] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGovernorate, setSelectedGovernorate] = useState<Governorate | 'الكل'>('الكل');
@@ -287,21 +287,26 @@ const FeedScreen: React.FC = () => {
   }, [craftsmen, searchTerm, selectedGovernorate, selectedCraft]);
 
   const handleSave = async (data: CraftsmanFormData) => {
-    if (editingCraftsman) {
-        await updateCraftsman(editingCraftsman.id, data);
-        setToastMessage('تم تحديث البيانات بنجاح');
-    } else if (isAdding) {
-        await addCraftsman(data);
-        setToastMessage('تم إضافة الحرفي بنجاح');
+    try {
+      if (editingCraftsman) {
+          await updateCraftsman(editingCraftsman.id, data);
+          showToast('تم تحديث البيانات بنجاح');
+      } else if (isAdding) {
+          await addCraftsman(data);
+          showToast('تم إضافة الحرفي بنجاح');
+      }
+      setEditingCraftsman(null);
+      setIsAdding(false);
+    } catch (e) {
+      showToast('حدث خطأ أثناء الحفظ');
+      console.error(e);
     }
-    setEditingCraftsman(null);
-    setIsAdding(false);
   };
 
   const handleDeleteConfirm = async () => {
     if (deletingCraftsman) {
         await deleteCraftsman(deletingCraftsman.id);
-        setToastMessage('تم حذف الحرفي بنجاح');
+        showToast('تم حذف الحرفي بنجاح');
         setDeletingCraftsman(null);
     }
   };
@@ -309,7 +314,7 @@ const FeedScreen: React.FC = () => {
   const handleRateSubmit = async (rating: number) => {
     if(ratingCraftsman) {
         await rateCraftsman(ratingCraftsman.id, rating);
-        setToastMessage('شكراً لك، تم تسجيل تقييمك');
+        showToast('شكراً لك، تم تسجيل تقييمك');
         setRatingCraftsman(null);
     }
   };
@@ -414,7 +419,6 @@ const FeedScreen: React.FC = () => {
 
       {ratingCraftsman && <RatingModal craftsman={ratingCraftsman} onRate={handleRateSubmit} onClose={() => setRatingCraftsman(null)} />}
       
-      {toastMessage && <Toast message={toastMessage} onAnimationEnd={() => setToastMessage('')} />}
     </div>
   );
 };
