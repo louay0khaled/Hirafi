@@ -1,9 +1,9 @@
-// FIX: Add a triple-slash directive to include webworker types, which resolves errors for ExtendableEvent and FetchEvent.
 /// <reference lib="webworker" />
 
 // This service worker is designed to make the app work offline by caching assets.
 
-const CACHE_NAME = 'hirafi-cache-v1';
+const CACHE_NAME = 'hirafi-cache-v2'; // Bump cache version
+const API_CACHE_NAME = 'hirafi-api-cache-v1';
 
 // List of files that make up the "app shell"
 const FILES_TO_CACHE = [
@@ -32,7 +32,7 @@ self.addEventListener('activate', (event) => {
   evt.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME) {
+        if (key !== CACHE_NAME && key !== API_CACHE_NAME) {
           console.log('[ServiceWorker] Removing old cache', key);
           return caches.delete(key);
         }
@@ -47,52 +47,129 @@ self.addEventListener('fetch', (event) => {
   const evt = event as FetchEvent;
   const url = new URL(evt.request.url);
 
-  // Don't cache requests to Supabase API to ensure data freshness
+  // API calls: Network first, then cache
   if (url.hostname.includes('supabase.co')) {
-    evt.respondWith(fetch(evt.request));
+    evt.respondWith(
+      fetch(evt.request)
+        .then(response => {
+          // If the request is successful, update the cache
+          if (response.ok) {
+            const responseToCache = response.clone();
+            caches.open(API_CACHE_NAME).then(cache => {
+              cache.put(evt.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // If network fails, try to serve from cache
+          return caches.match(evt.request).then(cachedResponse => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // If not in cache either, return a generic error response
+            return new Response(JSON.stringify({ error: 'offline' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          });
+        })
+    );
     return;
   }
 
-  // We only want to handle GET requests for other resources
-  if (evt.request.method !== 'GET') {
-    return;
-  }
-  
-  evt.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      // Try to get the resource from the cache
-      const cachedResponse = await cache.match(evt.request);
-      // If it's in the cache, return it
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      // If it's not in the cache, fetch it from the network
-      try {
-        const networkResponse = await fetch(evt.request);
-        // Don't cache chrome-extension:// requests or other non-http requests
-        if (evt.request.url.startsWith('http')) {
-           // Clone the response because it's a one-time-use stream
-          const responseToCache = networkResponse.clone();
-          // Add the new resource to the cache
-          cache.put(evt.request, responseToCache);
+  // For other requests (app shell, images, etc.), use cache-first strategy
+  if (evt.request.method === 'GET') {
+    evt.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(evt.request);
+        if (cachedResponse) {
+          return cachedResponse;
         }
-        // Return the network response
-        return networkResponse;
-      } catch (error) {
-        // Handle fetch errors, e.g., when offline
-        console.error('[ServiceWorker] Fetch failed:', error);
-        // You could return a fallback offline page here if you have one
-        return new Response("Network error happened", {
-          status: 408,
-          headers: { "Content-Type": "text/plain" },
-        });
-      }
-    })
-  );
+        
+        try {
+          const networkResponse = await fetch(evt.request);
+          if (evt.request.url.startsWith('http')) {
+            const responseToCache = networkResponse.clone();
+            cache.put(evt.request, responseToCache);
+          }
+          return networkResponse;
+        } catch (error) {
+          console.error('[ServiceWorker] Fetch failed:', error);
+          return new Response("Network error happened", {
+            status: 408,
+            headers: { "Content-Type": "text/plain" },
+          });
+        }
+      })
+    );
+  }
 });
 
-// FIX: Add an empty export to treat this file as a module.
-// This prevents the "Cannot redeclare block-scoped variable" error by scoping
-// variables like CACHE_NAME to this file, rather than making them global.
+// Background Sync event for deferred actions
+self.addEventListener('sync', (event) => {
+    // FIX: Cast event to 'any' to avoid TypeScript error for missing SyncEvent type definition.
+    const evt = event as any;
+    if (evt.tag === 'sync-data') {
+        console.log('[ServiceWorker] Background sync triggered for tag:', evt.tag);
+        evt.waitUntil(
+            // Placeholder for sync logic, e.g., reading from IndexedDB and sending to server.
+            Promise.resolve().then(() => console.log('[ServiceWorker] Sync complete.'))
+        );
+    }
+});
+
+// Periodic Sync for background data updates
+self.addEventListener('periodicsync', (event) => {
+    // FIX: Cast event to 'any' to avoid TypeScript error for missing PeriodicSyncEvent type definition.
+    const evt = event as any;
+    if (evt.tag === 'update-content') {
+        console.log('[ServiceWorker] Periodic sync triggered for tag:', evt.tag);
+        evt.waitUntil(
+            // Placeholder for periodic data fetch logic
+             Promise.resolve().then(() => console.log('[ServiceWorker] Periodic update complete.'))
+        );
+    }
+});
+
+// Push notification received
+self.addEventListener('push', (event) => {
+    const evt = event as PushEvent;
+    const data = evt.data ? evt.data.json() : { title: 'حرفي', body: 'لديك إشعار جديد!', tag: 'general' };
+    const title = data.title;
+    const options = {
+        body: data.body,
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-192x192.png',
+        tag: data.tag,
+        data: {
+            url: data.url || '/'
+        }
+    };
+    // FIX: Cast 'self' to 'any' to access the 'registration' property, resolving a type inference issue.
+    evt.waitUntil((self as any).registration.showNotification(title, options));
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+    const evt = event as NotificationEvent;
+    evt.notification.close();
+    evt.waitUntil(
+        (self as any).clients.matchAll({ type: 'window' }).then((clientList: any[]) => {
+            const urlToOpen = new URL(evt.notification.data.url || '/', self.location.origin).href;
+            
+            for (const client of clientList) {
+                if (client.url === urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if ((self as any).clients.openWindow) {
+                return (self as any).clients.openWindow(urlToOpen);
+            }
+        })
+    );
+});
+
+
+// Add an empty export to treat this file as a module.
 export {};

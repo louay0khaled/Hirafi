@@ -74,6 +74,15 @@
       .toast-animate {
         animation: toast-in-out 3.5s ease-out forwards;
       }
+      /* Support for Window Controls Overlay */
+      header {
+        -webkit-app-region: drag;
+        app-region: drag;
+      }
+      header button, header a, header h1, header [onclick] {
+        -webkit-app-region: no-drag;
+        app-region: no-drag;
+      }
     </style>
   <script type="importmap">
 {
