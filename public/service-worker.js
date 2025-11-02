@@ -1,6 +1,3 @@
-// FIX: Add a triple-slash directive to include webworker types, which resolves errors for ExtendableEvent and FetchEvent.
-/// <reference lib="webworker" />
-
 // This service worker is designed to make the app work offline by caching assets.
 
 const CACHE_NAME = 'hirafi-cache-v1';
@@ -17,8 +14,7 @@ const FILES_TO_CACHE = [
 
 // Install event: open a cache and add the app shell files to it
 self.addEventListener('install', (event) => {
-  const evt = event as ExtendableEvent;
-  evt.waitUntil(
+  event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[ServiceWorker] Pre-caching App Shell');
       return cache.addAll(FILES_TO_CACHE);
@@ -28,8 +24,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event: clean up old caches
 self.addEventListener('activate', (event) => {
-  const evt = event as ExtendableEvent;
-  evt.waitUntil(
+  event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {
         if (key !== CACHE_NAME) {
@@ -39,29 +34,28 @@ self.addEventListener('activate', (event) => {
       }));
     })
   );
-  (self as any).clients.claim();
+  self.clients.claim();
 });
 
 // Fetch event: serve assets from cache if available, otherwise fetch from network
 self.addEventListener('fetch', (event) => {
-  const evt = event as FetchEvent;
-  const url = new URL(evt.request.url);
+  const url = new URL(event.request.url);
 
   // Don't cache requests to Supabase API to ensure data freshness
   if (url.hostname.includes('supabase.co')) {
-    evt.respondWith(fetch(evt.request));
+    event.respondWith(fetch(event.request));
     return;
   }
 
   // We only want to handle GET requests for other resources
-  if (evt.request.method !== 'GET') {
+  if (event.request.method !== 'GET') {
     return;
   }
   
-  evt.respondWith(
+  event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       // Try to get the resource from the cache
-      const cachedResponse = await cache.match(evt.request);
+      const cachedResponse = await cache.match(event.request);
       // If it's in the cache, return it
       if (cachedResponse) {
         return cachedResponse;
@@ -69,13 +63,13 @@ self.addEventListener('fetch', (event) => {
       
       // If it's not in the cache, fetch it from the network
       try {
-        const networkResponse = await fetch(evt.request);
+        const networkResponse = await fetch(event.request);
         // Don't cache chrome-extension:// requests or other non-http requests
-        if (evt.request.url.startsWith('http')) {
+        if (event.request.url.startsWith('http')) {
            // Clone the response because it's a one-time-use stream
           const responseToCache = networkResponse.clone();
           // Add the new resource to the cache
-          cache.put(evt.request, responseToCache);
+          cache.put(event.request, responseToCache);
         }
         // Return the network response
         return networkResponse;
@@ -91,8 +85,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-
-// FIX: Add an empty export to treat this file as a module.
-// This prevents the "Cannot redeclare block-scoped variable" error by scoping
-// variables like CACHE_NAME to this file, rather than making them global.
-export {};

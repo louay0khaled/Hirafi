@@ -1,0 +1,46 @@
+{
+  "short_name": "حرفي",
+  "name": "حرفي: دليلك للحرفيين في سوريا",
+  "description": "تطبيق ويب تقدمي يربط الناس بالحرفيين المهرة في جميع المحافظات السورية الأربعة عشر، مصمم ليكون خفيفًا وسريعًا وسهل الاستخدام، شبيه بتجربة فيسبوك لايت.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": ".",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#3a6679",
+  "background_color": "#F9FAFB",
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-mobile-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Main feed of craftsmen"
+    },
+    {
+      "src": "/screenshots/screenshot-mobile-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Craftsman details view"
+    }
+  ]
+}
