@@ -1,3 +1,5 @@
+
+
 import { useState, useEffect, useCallback } from 'react';
 import { Craftsman } from '../types';
 import { supabase } from '../lib/supabaseClient';
@@ -16,9 +18,6 @@ export type CraftsmanFormData = Omit<Craftsman, 'id' | 'rating' | 'reviews' | 'a
 export const useCraftsmen = () => {
   const [craftsmen, setCraftsmen] = useState<Craftsman[]>([]);
   const [loading, setLoading] = useState(true);
-  // FIX: Changed bucket name. The "Bucket not found" error suggests a mismatch.
-  // It's likely the bucket was created as 'craftsmen-images' following earlier examples,
-  // without the '1.' prefix.
   const BUCKET_NAME = 'craftsmen-images';
 
   const fetchCraftsmen = useCallback(async () => {
@@ -49,8 +48,7 @@ export const useCraftsmen = () => {
       });
 
     if (error) {
-      // Use the full error object for better debugging in the console.
-      console.error(`Error uploading file to ${path}:`, error);
+      console.error(`Error uploading file to ${path}:`, JSON.stringify(error, null, 2));
       throw error;
     }
 
@@ -73,50 +71,55 @@ export const useCraftsmen = () => {
       let header_image_url = '';
 
       if (formData.avatarFile) {
-        const fileExt = formData.avatarFile.name.split('.').pop();
-        const avatarPath = `public/avatars/${newCraftsmanId}.${fileExt}`;
+        const fileExt = formData.avatarFile.name.split('.').pop() || 'jpg';
+        const avatarPath = `avatars/${newCraftsmanId}.${fileExt}`;
         avatar_url = await uploadFile(formData.avatarFile, avatarPath) ?? '';
       }
 
       if (formData.headerFile) {
-        const fileExt = formData.headerFile.name.split('.').pop();
-        const headerPath = `public/headers/${newCraftsmanId}.${fileExt}`;
+        const fileExt = formData.headerFile.name.split('.').pop() || 'jpg';
+        const headerPath = `headers/${newCraftsmanId}.${fileExt}`;
         header_image_url = await uploadFile(formData.headerFile, headerPath) ?? '';
       }
       
       const portfolio_urls: string[] = [];
       if (formData.portfolioFiles && formData.portfolioFiles.length > 0) {
         for (const file of formData.portfolioFiles) {
-          const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
-          const portfolioPath = `public/portfolios/${newCraftsmanId}/${fileName}`;
+          const fileExt = file.name.split('.').pop() || 'jpg';
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const portfolioPath = `portfolios/${newCraftsmanId}/${fileName}`;
           const url = await uploadFile(file, portfolioPath);
           if (url) portfolio_urls.push(url);
         }
       }
 
-      const { avatarFile, headerFile, portfolioFiles, ...craftsmanData } = formData;
-      
-      const { error } = await supabase
-        .from('craftsmen')
-        .insert([{
-          ...craftsmanData,
+      // Explicitly construct the object to be inserted to avoid any ambiguity.
+      const newCraftsmanData = {
           id: newCraftsmanId,
+          name: formData.name,
+          craft: formData.craft,
+          governorate: formData.governorate,
+          bio: formData.bio,
+          phone: formData.phone,
           avatar_url,
           header_image_url,
           portfolio: portfolio_urls,
-        }]);
+      };
+      
+      const { error } = await supabase
+        .from('craftsmen')
+        .insert(newCraftsmanData, { returning: 'minimal' });
       
       if (error) {
         console.error('Error adding craftsman:', error.message);
         throw error;
       }
       
-      // **FIX:** Refetch all data to solve the schema cache issue and ensure UI consistency.
       await fetchCraftsmen(); 
 
-    } catch (error) {
-      // FIX: Improved error logging to avoid '[object Object]'.
-      console.error('An error occurred in addCraftsman:', error instanceof Error ? error.message : error, error);
+    } catch (error: any) {
+      const message = error.message || JSON.stringify(error);
+      console.error(`An error occurred in addCraftsman: ${message}`, error);
       throw error;
     }
   };
@@ -127,37 +130,43 @@ export const useCraftsmen = () => {
         let header_image_url = formData.header_image_url;
 
         if (formData.avatarFile) {
-            const fileExt = formData.avatarFile.name.split('.').pop();
-            const avatarPath = `public/avatars/${id}.${fileExt}`;
+            const fileExt = formData.avatarFile.name.split('.').pop() || 'jpg';
+            const avatarPath = `avatars/${id}.${fileExt}`;
             avatar_url = await uploadFile(formData.avatarFile, avatarPath) ?? avatar_url;
         }
 
         if (formData.headerFile) {
-            const fileExt = formData.headerFile.name.split('.').pop();
-            const headerPath = `public/headers/${id}.${fileExt}`;
+            const fileExt = formData.headerFile.name.split('.').pop() || 'jpg';
+            const headerPath = `headers/${id}.${fileExt}`;
             header_image_url = await uploadFile(formData.headerFile, headerPath) ?? header_image_url;
         }
         
         let updatedPortfolio = [...formData.portfolio]; 
         if (formData.portfolioFiles && formData.portfolioFiles.length > 0) {
             for (const file of formData.portfolioFiles) {
-              const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
-              const portfolioPath = `public/portfolios/${id}/${fileName}`;
+              const fileExt = file.name.split('.').pop() || 'jpg';
+              const fileName = `${crypto.randomUUID()}.${fileExt}`;
+              const portfolioPath = `portfolios/${id}/${fileName}`;
               const url = await uploadFile(file, portfolioPath);
               if (url) updatedPortfolio.push(url);
             }
         }
 
-        const { avatarFile, headerFile, portfolioFiles, ...craftsmanData } = formData;
+        // Explicitly construct the object to be updated.
+        const craftsmanUpdateData = {
+          name: formData.name,
+          craft: formData.craft,
+          governorate: formData.governorate,
+          bio: formData.bio,
+          phone: formData.phone,
+          avatar_url,
+          header_image_url,
+          portfolio: updatedPortfolio,
+        };
 
         const { error } = await supabase
             .from('craftsmen')
-            .update({
-                ...craftsmanData,
-                avatar_url,
-                header_image_url,
-                portfolio: updatedPortfolio,
-            })
+            .update(craftsmanUpdateData, { returning: 'minimal' })
             .eq('id', id);
 
         if (error) {
@@ -165,13 +174,12 @@ export const useCraftsmen = () => {
             throw error;
         }
 
-        // **FIX:** Refetch all data for robustness.
         await fetchCraftsmen();
 
-    } catch (error) {
-        // FIX: Improved error logging to avoid '[object Object]'.
-        console.error('An error occurred in updateCraftsman:', error instanceof Error ? error.message : error, error);
-        throw error;
+    } catch (error: any) {
+      const message = error.message || JSON.stringify(error);
+      console.error(`An error occurred in updateCraftsman: ${message}`, error);
+      throw error;
     }
   };
 
@@ -185,7 +193,6 @@ export const useCraftsmen = () => {
     if (error) {
         console.error('Error deleting craftsman:', error);
     } else {
-        // **FIX:** Refetch for consistency.
         await fetchCraftsmen();
     }
   };
