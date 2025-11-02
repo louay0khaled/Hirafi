@@ -11,7 +11,7 @@ interface SideMenuProps {
 }
 
 const SideMenu: React.FC<SideMenuProps> = ({ isOpen, onClose }) => {
-  const { isAdmin, logout } = useContext(AdminContext);
+  const { user, logout } = useContext(AdminContext);
   const { showToast } = useToast();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -72,7 +72,7 @@ const SideMenu: React.FC<SideMenuProps> = ({ isOpen, onClose }) => {
               تواصل عبر واتساب
             </a>
           </div>
-          {isAdmin && (
+          {user && (
               <div className="p-4 border-t">
                   <h3 className="text-sm font-semibold text-gray-500 mb-3 px-1">أدوات المدير</h3>
                    <button

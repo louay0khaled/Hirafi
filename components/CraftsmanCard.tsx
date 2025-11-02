@@ -13,7 +13,7 @@ interface CraftsmanCardProps {
 const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
 
 const CraftsmanCard: React.FC<CraftsmanCardProps> = ({ craftsman, onView, onEdit, onDelete }) => {
-  const { isAdmin } = useContext(AdminContext);
+  const { user } = useContext(AdminContext);
   const imageUrl = craftsman.avatar_url || AVATAR_PLACEHOLDER;
 
   return (
@@ -39,7 +39,7 @@ const CraftsmanCard: React.FC<CraftsmanCardProps> = ({ craftsman, onView, onEdit
         </div>
       </div>
       
-      {isAdmin && (
+      {user && (
         <div className="absolute top-2 left-2 flex gap-2">
           <button onClick={(e) => { e.stopPropagation(); onEdit(craftsman); }} className="p-2 bg-brand-100 text-brand-600 rounded-full hover:bg-brand-200 transition">
             <EditIcon className="w-4 h-4" />

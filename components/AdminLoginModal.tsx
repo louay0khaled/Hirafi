@@ -3,20 +3,25 @@ import { CloseIcon } from './Icons';
 
 interface AdminLoginModalProps {
   onClose: () => void;
-  onSubmit: (password: string) => boolean;
+  onSubmit: (password: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onClose, onSubmit }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = onSubmit(password);
-    if (!success) {
-      setError('كلمة المرور غير صحيحة.');
+    setIsLoading(true);
+    setError('');
+    const result = await onSubmit(password);
+    if (!result.success) {
+      setError(result.error || 'كلمة المرور غير صحيحة.');
       setPassword('');
     }
+    // No need to call onClose here, the parent component does it on success.
+    setIsLoading(false);
   };
 
   return (
@@ -35,6 +40,9 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onClose, onSubmit }) 
           </button>
         </header>
         <form onSubmit={handleSubmit} className="p-4">
+           <p className="text-sm text-gray-600 mb-3">
+            لأسباب أمنية، تم ربط حساب المدير بنظام المصادقة. استخدم كلمة المرور التي قمت بتعيينها في Supabase.
+          </p>
           <label className="block mb-2">
             كلمة المرور:
             <input
@@ -49,8 +57,8 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ onClose, onSubmit }) 
             />
           </label>
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-          <button type="submit" className="w-full bg-brand-700 text-white py-2 rounded-md hover:bg-brand-800">
-            دخول
+          <button type="submit" disabled={isLoading} className="w-full bg-brand-700 text-white py-2 rounded-md hover:bg-brand-800 disabled:bg-brand-900">
+            {isLoading ? 'جارٍ الدخول...' : 'دخول'}
           </button>
         </form>
       </div>

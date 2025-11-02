@@ -10,7 +10,7 @@ const App: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const { isAdmin, login } = useContext(AdminContext);
+  const { user, login } = useContext(AdminContext);
 
   const handleOffline = () => setIsOffline(true);
   const handleOnline = () => setIsOffline(false);
@@ -25,13 +25,12 @@ const App: React.FC = () => {
     };
   }, []);
   
-  const handleLogin = (password: string) => {
-    if (password === 'أنا لؤي') {
-      login();
+  const handleLogin = async (password: string) => {
+    const result = await login(password);
+    if (result.success) {
       setIsLoginModalOpen(false);
-      return true;
     }
-    return false;
+    return result; // Return the result object for the modal to handle
   };
 
   return (
@@ -52,7 +51,7 @@ const App: React.FC = () => {
         <FeedScreen />
       </main>
       
-      {isLoginModalOpen && !isAdmin && (
+      {isLoginModalOpen && !user && (
         <AdminLoginModal 
           onClose={() => setIsLoginModalOpen(false)}
           onSubmit={handleLogin}

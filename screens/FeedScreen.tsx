@@ -11,7 +11,7 @@ import { useToast } from '../context/ToastContext';
 import ImageModal from '../components/ImageModal';
 
 const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
-const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZHRoPSI5MDAiLz48L3N2Zz4=';
+const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZ-aHQ9IjkwMCIvPjwvc3ZnPg==';
 
 const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => void; onClose: () => void; }> = ({ craftsman, onRate, onClose }) => {
     const [rating, setRating] = useState(0);
@@ -260,7 +260,7 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
 
 const FeedScreen: React.FC = () => {
   const { craftsmen, loading, addCraftsman, updateCraftsman, deleteCraftsman, rateCraftsman } = useCraftsmen();
-  const { isAdmin } = useContext(AdminContext);
+  const { user } = useContext(AdminContext);
   const { showToast } = useToast();
 
   const [selectedCraftsman, setSelectedCraftsman] = useState<Craftsman | null>(null);
@@ -334,7 +334,7 @@ const FeedScreen: React.FC = () => {
         <div className="text-center py-20 px-4 text-gray-500">
           <h2 className="text-2xl font-bold text-gray-700 mb-2">مرحباً بك في حِرَفي</h2>
           <p>لم تتم إضافة أي حرفيين بعد.</p>
-          {isAdmin ? (
+          {user ? (
             <p className="mt-4 bg-accent-100 text-accent-800 p-3 rounded-lg">
               اضغط على زر <span className="font-bold mx-1">(+)</span> في الأسفل لإضافة أول حرفي إلى الدليل.
             </p>
@@ -388,7 +388,7 @@ const FeedScreen: React.FC = () => {
         {renderContent()}
       </div>
       
-      {isAdmin && (
+      {user && (
         <button 
             onClick={() => setIsAdding(true)}
             className="fixed bottom-6 right-1/2 translate-x-1/2 sm:right-6 sm:translate-x-0 bg-brand-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-800 transition transform hover:scale-110"
