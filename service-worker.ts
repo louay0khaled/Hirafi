@@ -9,6 +9,10 @@ const CACHE_NAME = 'hirafi-cache-v1';
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/icon-maskable-512x512.png'
 ];
 
 // Install event: open a cache and add the app shell files to it

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -23,7 +24,7 @@ root.render(
 // Register the service worker for offline capabilities
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.ts') // In a real build, this would be .js
+    navigator.serviceWorker.register('/service-worker.js') // Use the compiled JS file in production
       .then(registration => {
         console.log('ServiceWorker registration successful with scope: ', registration.scope);
       })
