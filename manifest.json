@@ -27,8 +27,8 @@
   "id": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#3a6679",
-  "background_color": "#F9FAFB",
+  "theme_color": "#266f68",
+  "background_color": "#f8fafc",
   "screenshots": [
     {
       "src": "/screenshots/screenshot-mobile-1.png",

@@ -4,14 +4,11 @@ import Modal from '../components/Modal';
 import { useCraftsmen, CraftsmanFormData } from '../hooks/useCraftsmen';
 import { Craftsman, Governorate } from '../types';
 import { AdminContext } from '../context/AdminContext';
-import { PlusIcon, LocationIcon, StarIcon, PhoneIcon, WhatsappIcon, CloseIcon, SearchIcon } from '../components/Icons';
+import { PlusIcon, StarIcon, CloseIcon, SearchIcon, ChevronDownIcon } from '../components/Icons';
 import { GOVERNORATES } from '../constants';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useToast } from '../context/ToastContext';
 import ImageModal from '../components/ImageModal';
-
-const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
-const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZ-aHQ9IjkwMCIvPjwvc3ZnPg==';
 
 const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => void; onClose: () => void; }> = ({ craftsman, onRate, onClose }) => {
     const [rating, setRating] = useState(0);
@@ -26,8 +23,8 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
     return (
         <Modal isOpen={true} onClose={onClose} title={`تقييم ${craftsman.name}`}>
             <div className="text-center">
-                <p className="text-gray-600 mb-4">اختر تقييمك بناءً على العوامل التالية:</p>
-                <ul className="text-sm text-gray-500 list-disc list-inside mb-4 text-start">
+                <p className="text-neutral-600 mb-4">اختر تقييمك بناءً على العوامل التالية:</p>
+                <ul className="text-sm text-neutral-500 list-disc list-inside mb-4 text-start">
                     <li>جودة العمل</li>
                     <li>الالتزام بالوقت</li>
                     <li>سهولة التواصل</li>
@@ -38,7 +35,7 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
                         <StarIcon
                             key={star}
                             className={`w-10 h-10 cursor-pointer transition-colors ${
-                                hoverRating >= star || rating >= star ? 'text-yellow-400' : 'text-gray-300'
+                                hoverRating >= star || rating >= star ? 'text-yellow-400 scale-110' : 'text-neutral-300'
                             }`}
                             onClick={() => setRating(star)}
                             onMouseEnter={() => setHoverRating(star)}
@@ -49,7 +46,7 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
                  <button 
                     onClick={handleSubmit} 
                     disabled={rating === 0}
-                    className="w-full px-4 py-2 bg-brand-700 text-white rounded-md hover:bg-brand-800 disabled:bg-gray-400"
+                    className="w-full px-4 py-2.5 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 disabled:bg-neutral-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
                 >
                     إرسال التقييم
                 </button>
@@ -57,90 +54,6 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
         </Modal>
     )
 };
-
-const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => void; onAvatarClick: (url: string) => void; }> = ({ craftsman, onStartRating, onAvatarClick }) => (
-  <div>
-    <div 
-      className="w-full h-40 bg-cover bg-center rounded-t-lg bg-gray-200"
-      style={{ backgroundImage: `url(${craftsman.header_image_url || HEADER_PLACEHOLDER})` }}
-      role="img"
-      aria-label={`${craftsman.name} header`}
-    />
-    <div className="p-4">
-        <div className="flex items-start mb-4">
-            <div 
-              className="w-28 h-28 rounded-full bg-cover bg-center border-4 border-white -mt-14 shadow-lg bg-gray-200 cursor-pointer transition-transform hover:scale-105"
-              style={{ backgroundImage: `url(${craftsman.avatar_url || AVATAR_PLACEHOLDER})` }}
-              role="button"
-              tabIndex={0}
-              aria-label={`View profile picture of ${craftsman.name}`}
-              onClick={() => craftsman.avatar_url && onAvatarClick(craftsman.avatar_url)}
-              onKeyDown={(e) => (e.key === 'Enter' && craftsman.avatar_url) && onAvatarClick(craftsman.avatar_url)}
-            />
-            <div className="ms-4 pt-2">
-                <h3 className="text-xl font-bold">{craftsman.name}</h3>
-                <p className="text-brand-700">{craftsman.craft}</p>
-            </div>
-        </div>
-        <div className="flex items-center text-gray-600 mt-2 text-sm">
-          <LocationIcon />
-          <span className="ms-1">{craftsman.governorate}</span>
-          <span className="mx-2">·</span>
-          <div className="flex items-center text-yellow-500">
-            <StarIcon />
-            <span className="ms-1 font-bold">{craftsman.rating.toFixed(1)}</span>
-            <span className="ms-1 text-gray-500">({craftsman.reviews} تقييم)</span>
-          </div>
-        </div>
-        
-        <h4 className="font-bold mt-6 mb-3 text-gray-800">للتواصل</h4>
-        <div className="flex items-center space-s-3">
-            <a
-              href={`tel:+963${craftsman.phone}`}
-              className="flex-1 flex items-center justify-center text-sm bg-gray-100 text-brand-700 font-semibold py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors duration-300"
-            >
-              <PhoneIcon className="me-2 w-4 h-4"/>
-              اتصال
-            </a>
-            <a
-              href={`https://wa.me/963${craftsman.phone}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center text-sm bg-green-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors duration-300"
-            >
-              <WhatsappIcon className="me-2 w-4 h-4"/>
-              واتساب
-            </a>
-        </div>
-        
-        <button onClick={onStartRating} className="mt-4 w-full text-sm flex items-center justify-center bg-accent-100 text-accent-800 font-bold py-2 rounded-lg hover:bg-accent-200 transition-colors duration-300">
-            <StarIcon className="me-2 w-4 h-4"/>
-            تقييم الحرفي
-        </button>
-
-        <h4 className="font-bold mt-6 mb-2">عن الحرفي</h4>
-        <p className="text-gray-700 leading-relaxed">{craftsman.bio}</p>
-        
-        {craftsman.portfolio && craftsman.portfolio.length > 0 && (
-          <>
-            <h4 className="font-bold mt-6 mb-2">معرض الأعمال</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {craftsman.portfolio.map((imgUrl, index) => (
-                  <div key={index} className="aspect-square">
-                    <div 
-                      className="w-full h-full bg-cover bg-center rounded-lg shadow-sm"
-                      style={{ backgroundImage: `url(${imgUrl})` }}
-                      role="img"
-                      aria-label={`Portfolio work ${index + 1}`}
-                    />
-                  </div>
-                ))}
-            </div>
-          </>
-        )}
-    </div>
-  </div>
-);
 
 const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanFormData) => Promise<void>; onCancel: () => void }> = ({ craftsman, onSave, onCancel }) => {
     const [isSaving, setIsSaving] = useState(false);
@@ -153,6 +66,7 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
         avatar_url: craftsman?.avatar_url || '',
         header_image_url: craftsman?.header_image_url || '',
         portfolio: craftsman?.portfolio || [],
+        portfolioFiles: [],
     });
     
     // Previews for existing URLs or newly selected files
@@ -194,11 +108,37 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
         }
     };
 
-    const removePortfolioImage = (index: number) => {
-      const imageUrlToRemove = portfolioPreviews[index];
-      setPortfolioPreviews(prev => prev.filter((_, i) => i !== index));
-      setFormData(prev => ({ ...prev, portfolio: prev.portfolio.filter(url => url !== imageUrlToRemove)}));
-    }
+    const removePortfolioImage = (indexToRemove: number) => {
+      const urlToRemove = portfolioPreviews[indexToRemove];
+    
+      // Remove from the visual preview list
+      setPortfolioPreviews(prev => prev.filter((_, i) => i !== indexToRemove));
+    
+      if (urlToRemove.startsWith('blob:')) {
+        // This is a newly added file (represented by a blob URL).
+        // We need to find its corresponding File object in `portfolioFiles` and remove it.
+        // We can do this by tracking how many blob URLs exist up to the removal index.
+        let blobIndex = -1;
+        for (let i = 0; i <= indexToRemove; i++) {
+          if (portfolioPreviews[i].startsWith('blob:')) {
+            blobIndex++;
+          }
+        }
+    
+        if (blobIndex !== -1) {
+          setFormData(prev => ({
+            ...prev,
+            portfolioFiles: (prev.portfolioFiles || []).filter((_, i) => i !== blobIndex),
+          }));
+        }
+      } else {
+        // This is an existing image from the database. Remove it from the `portfolio` URL list.
+        setFormData(prev => ({
+          ...prev,
+          portfolio: prev.portfolio.filter(url => url !== urlToRemove),
+        }));
+      }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -207,49 +147,49 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
         setIsSaving(false);
     };
 
-    const inputClass = "w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition";
-    const fileInputLabelClass = "cursor-pointer bg-white p-2 border border-gray-300 rounded-md text-center text-gray-700 hover:bg-gray-50 transition block";
+    const inputClass = "w-full p-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white";
+    const fileInputLabelClass = "cursor-pointer bg-white p-2 border border-neutral-300 rounded-lg text-center text-neutral-700 hover:bg-neutral-100 block";
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            <div><label className="font-semibold">الاسم:</label><input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} required /></div>
-            <div><label className="font-semibold">الحرفة:</label><input type="text" name="craft" value={formData.craft} onChange={handleChange} className={inputClass} required /></div>
-            <div><label className="font-semibold">المحافظة:</label><select name="governorate" value={formData.governorate} onChange={handleChange} className={inputClass}>{GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
+            <div><label className="font-semibold text-neutral-700">الاسم:</label><input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} required /></div>
+            <div><label className="font-semibold text-neutral-700">الحرفة:</label><input type="text" name="craft" value={formData.craft} onChange={handleChange} className={inputClass} required /></div>
+            <div><label className="font-semibold text-neutral-700">المحافظة:</label><select name="governorate" value={formData.governorate} onChange={handleChange} className={inputClass}>{GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
             <div>
-              <label className="font-semibold">رقم الهاتف:</label>
+              <label className="font-semibold text-neutral-700">رقم الهاتف:</label>
               <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={inputClass} required />
-              <p className="text-xs text-gray-500 mt-1">أدخل الرقم بدون رمز الدولة (مثال: 992705838)</p>
+              <p className="text-xs text-neutral-500 mt-1">أدخل الرقم بدون رمز الدولة (مثال: 992705838)</p>
             </div>
-            <div><label className="font-semibold">نبذة:</label><textarea name="bio" value={formData.bio} onChange={handleChange} className={inputClass} required /></div>
+            <div><label className="font-semibold text-neutral-700">نبذة:</label><textarea name="bio" value={formData.bio} onChange={handleChange} className={inputClass} required rows={4} /></div>
             
             <div>
-                <label className="block mb-1 font-semibold">الصورة الشخصية:</label>
+                <label className="block mb-1 font-semibold text-neutral-700">الصورة الشخصية:</label>
                 <label className={fileInputLabelClass}><span>{avatarPreview ? "تغيير الصورة" : "اختر ملف..."}</span><input type="file" onChange={(e) => handleFileChange(e, 'avatarFile')} className="hidden" accept="image/*" /></label>
                 {avatarPreview && <img src={avatarPreview} alt="معاينة" className="mt-2 w-24 h-24 rounded-full object-cover mx-auto" />}
             </div>
 
             <div>
-                <label className="block mb-1 font-semibold">صورة الغلاف:</label>
+                <label className="block mb-1 font-semibold text-neutral-700">صورة الغلاف:</label>
                  <label className={fileInputLabelClass}><span>{headerPreview ? "تغيير الصورة" : "اختر ملف..."}</span><input type="file" onChange={(e) => handleFileChange(e, 'headerFile')} className="hidden" accept="image/*" /></label>
-                {headerPreview && <img src={headerPreview} alt="معاينة" className="mt-2 w-full h-32 object-cover rounded-md" />}
+                {headerPreview && <img src={headerPreview} alt="معاينة" className="mt-2 w-full h-32 object-cover rounded-lg" />}
             </div>
 
             <div>
-                <label className="block mb-1 font-semibold">معرض الأعمال:</label>
+                <label className="block mb-1 font-semibold text-neutral-700">معرض الأعمال:</label>
                 <label className={fileInputLabelClass}><span>إضافة صور...</span><input type="file" onChange={handlePortfolioChange} className="hidden" accept="image/*" multiple /></label>
                 <div className="mt-2 grid grid-cols-3 gap-2">
                     {portfolioPreviews.map((img, index) => (
-                        <div key={index} className="relative">
-                            <img src={img} alt={`معرض ${index + 1}`} className="w-full h-24 object-cover rounded-md"/>
-                            <button type="button" onClick={() => removePortfolioImage(index)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5"><CloseIcon className="w-4 h-4"/></button>
+                        <div key={img} className="relative group">
+                            <img src={img} alt={`معرض ${index + 1}`} className="w-full h-24 object-cover rounded-lg"/>
+                            <button type="button" onClick={() => removePortfolioImage(index)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100"><CloseIcon className="w-4 h-4"/></button>
                         </div>
                     ))}
                 </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-4">
-                <button type="button" onClick={onCancel} disabled={isSaving} className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50">إلغاء</button>
-                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-brand-700 text-white rounded-md hover:bg-brand-800 disabled:bg-brand-900 disabled:cursor-wait">
+                <button type="button" onClick={onCancel} disabled={isSaving} className="px-4 py-2 bg-neutral-200 text-neutral-800 font-semibold rounded-lg hover:bg-neutral-300 disabled:opacity-50">إلغاء</button>
+                <button type="submit" disabled={isSaving} className="px-4 py-2 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 disabled:bg-brand-800 disabled:cursor-wait">
                     {isSaving ? 'جارٍ الحفظ...' : 'حفظ'}
                 </button>
             </div>
@@ -263,13 +203,11 @@ const FeedScreen: React.FC = () => {
   const { user } = useContext(AdminContext);
   const { showToast } = useToast();
 
-  const [selectedCraftsman, setSelectedCraftsman] = useState<Craftsman | null>(null);
   const [editingCraftsman, setEditingCraftsman] = useState<Craftsman | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingCraftsman, setDeletingCraftsman] = useState<Craftsman | null>(null);
   const [ratingCraftsman, setRatingCraftsman] = useState<Craftsman | null>(null);
   const [imageModalUrl, setImageModalUrl] = useState<string | null>(null);
-
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGovernorate, setSelectedGovernorate] = useState<Governorate | 'الكل'>('الكل');
@@ -326,16 +264,16 @@ const FeedScreen: React.FC = () => {
 
   const renderContent = () => {
     if (loading) {
-      return Array.from({ length: 5 }).map((_, i) => <SkeletonLoader key={i} />);
+      return Array.from({ length: 3 }).map((_, i) => <SkeletonLoader key={i} />);
     }
 
     if (craftsmen.length === 0) {
       return (
-        <div className="text-center py-20 px-4 text-gray-500">
-          <h2 className="text-2xl font-bold text-gray-700 mb-2">مرحباً بك في حِرَفي</h2>
+        <div className="text-center py-20 px-4 text-neutral-500">
+          <h2 className="text-2xl font-bold text-neutral-700 mb-2 font-heading">مرحباً بك في حِرَفي</h2>
           <p>لم تتم إضافة أي حرفيين بعد.</p>
           {user ? (
-            <p className="mt-4 bg-accent-100 text-accent-800 p-3 rounded-lg">
+            <p className="mt-4 bg-accent-100 text-accent-800 p-3 rounded-xl">
               اضغط على زر <span className="font-bold mx-1">(+)</span> في الأسفل لإضافة أول حرفي إلى الدليل.
             </p>
           ) : (
@@ -347,60 +285,64 @@ const FeedScreen: React.FC = () => {
     
     if (filteredCraftsmen.length === 0) {
         return (
-            <div className="text-center py-20 px-4 text-gray-500">
-                <h2 className="text-xl font-bold text-gray-700 mb-2">لا توجد نتائج</h2>
+            <div className="text-center py-20 px-4 text-neutral-500">
+                <h2 className="text-xl font-bold text-neutral-700 mb-2 font-heading">لا توجد نتائج</h2>
                 <p>لم يتم العثور على حرفيين يطابقون معايير البحث الحالية.</p>
             </div>
         );
     }
 
-    return filteredCraftsmen.map(craftsman => (
+    return filteredCraftsmen.map((craftsman, index) => (
       <CraftsmanCard 
         key={craftsman.id} 
         craftsman={craftsman}
-        onView={setSelectedCraftsman}
         onEdit={setEditingCraftsman}
         onDelete={setDeletingCraftsman}
+        onRate={setRatingCraftsman}
+        onViewImage={setImageModalUrl}
+        style={{ animationDelay: `${index * 70}ms` }}
       />
     ));
   };
 
   return (
     <div className="pb-20">
-      <div className="p-2 space-y-2 bg-gray-100 border-b sticky top-16 z-30">
+      <div className="p-3 bg-neutral-50/80 backdrop-blur-sm border-b border-neutral-200 sticky top-16 z-30 sm:rounded-b-xl">
         <div className="relative">
-          <input type="text" placeholder="ابحث..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full ps-10 pe-4 py-2 rounded-full bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500"/>
-          <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none"><SearchIcon className="w-5 h-5 text-gray-400" /></div>
+          <input type="text" placeholder="ابحث بالاسم أو الحرفة..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full ps-10 pe-4 py-2.5 border border-neutral-300 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500"/>
+          <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none"><SearchIcon className="w-5 h-5 text-neutral-400" /></div>
         </div>
-        <div className="flex gap-2">
-            <select value={selectedGovernorate} onChange={e => setSelectedGovernorate(e.target.value as any)} className="w-full p-2 rounded-full bg-white shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="الكل">كل المحافظات</option>
-                {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-            <select value={selectedCraft} onChange={e => setSelectedCraft(e.target.value)} className="w-full p-2 rounded-full bg-white shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="الكل">كل الحرف</option>
-                {availableCrafts.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+        <div className="flex gap-2 mt-2">
+            <div className="relative w-full">
+                <select value={selectedGovernorate} onChange={e => setSelectedGovernorate(e.target.value as any)} className="w-full p-2.5 ps-4 pe-8 border border-neutral-300 rounded-xl bg-white shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                    <option value="الكل">كل المحافظات</option>
+                    {GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <div className="absolute inset-y-0 left-0 ps-2 flex items-center pointer-events-none"><ChevronDownIcon className="w-5 h-5 text-neutral-400" /></div>
+            </div>
+            <div className="relative w-full">
+                <select value={selectedCraft} onChange={e => setSelectedCraft(e.target.value)} className="w-full p-2.5 ps-4 pe-8 border border-neutral-300 rounded-xl bg-white shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                    <option value="الكل">كل الحرف</option>
+                    {availableCrafts.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <div className="absolute inset-y-0 left-0 ps-2 flex items-center pointer-events-none"><ChevronDownIcon className="w-5 h-5 text-neutral-400" /></div>
+            </div>
         </div>
       </div>
 
-      <div className="p-2">
+      <div>
         {renderContent()}
       </div>
       
       {user && (
         <button 
             onClick={() => setIsAdding(true)}
-            className="fixed bottom-6 right-1/2 translate-x-1/2 sm:right-6 sm:translate-x-0 bg-brand-700 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-800 transition transform hover:scale-110"
+            className="fixed bottom-6 right-1/2 translate-x-1/2 sm:right-6 sm:translate-x-0 bg-brand-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-700 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
             aria-label="إضافة حرفي جديد"
         >
             <PlusIcon className="w-8 h-8"/>
         </button>
       )}
-
-      <Modal isOpen={!!selectedCraftsman} onClose={() => setSelectedCraftsman(null)} title={selectedCraftsman?.name || ''}>
-        {selectedCraftsman && <CraftsmanDetails craftsman={selectedCraftsman} onStartRating={() => setRatingCraftsman(selectedCraftsman)} onAvatarClick={setImageModalUrl} />}
-      </Modal>
 
       <Modal 
         isOpen={isAdding || !!editingCraftsman} 
@@ -417,8 +359,8 @@ const FeedScreen: React.FC = () => {
       <Modal isOpen={!!deletingCraftsman} onClose={() => setDeletingCraftsman(null)} title="تأكيد الحذف">
         <p>هل أنت متأكد من أنك تريد حذف ملف <strong>{deletingCraftsman?.name}</strong>؟ لا يمكن التراجع عن هذا الإجراء.</p>
         <div className="flex justify-end gap-2 mt-4">
-            <button onClick={() => setDeletingCraftsman(null)} className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">إلغاء</button>
-            <button onClick={handleDeleteConfirm} className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">حذف</button>
+            <button onClick={() => setDeletingCraftsman(null)} className="px-4 py-2 bg-neutral-200 text-neutral-800 font-semibold rounded-lg hover:bg-neutral-300">إلغاء</button>
+            <button onClick={handleDeleteConfirm} className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700">حذف</button>
         </div>
       </Modal>
 

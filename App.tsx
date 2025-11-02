@@ -21,6 +21,7 @@ const App: React.FC = () => {
 
     return () => {
       window.removeEventListener('offline', handleOffline);
+      // FIX: The second argument to removeEventListener should be the listener function.
       window.removeEventListener('online', handleOnline);
     };
   }, []);
@@ -34,18 +35,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
+    <div className="bg-neutral-100 min-h-screen font-sans text-neutral-800">
       {isOffline && (
-        <div className="bg-yellow-500 text-black text-center p-2 text-sm font-semibold flex items-center justify-center fixed top-0 w-full z-50 shadow-md">
+        <div className="bg-accent-400 text-neutral-800 text-center p-2 text-sm font-semibold flex items-center justify-center fixed top-0 w-full z-50 shadow-md">
           <WifiOffIcon className="w-4 h-4 me-2"/>
           أنت غير متصل. يتم عرض محتوى محفوظ.
         </div>
       )}
       <Header 
         onMenuClick={() => setIsMenuOpen(true)}
-        onLogoTripleClick={() => setIsLoginModalOpen(true)}
       />
-      <SideMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <SideMenu 
+        isOpen={isMenuOpen} 
+        onClose={() => setIsMenuOpen(false)}
+        onAdminLoginClick={() => setIsLoginModalOpen(true)}
+      />
       
       <main className="max-w-lg mx-auto">
         <FeedScreen />

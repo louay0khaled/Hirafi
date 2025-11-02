@@ -1,7 +1,7 @@
 // This service worker is designed to make the app work offline by caching assets.
 
 const CACHE_NAME = 'hirafi-cache-v2'; // Bump cache version
-const API_CACHE_NAME = 'hirafi-api-cache-v1';
+const DYNAMIC_CACHE_NAME = 'hirafi-dynamic-cache-v1';
 
 // List of files that make up the "app shell"
 const FILES_TO_CACHE = [
@@ -28,7 +28,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {
-        if (key !== CACHE_NAME && key !== API_CACHE_NAME) {
+        if (key !== CACHE_NAME && key !== DYNAMIC_CACHE_NAME) {
           console.log('[ServiceWorker] Removing old cache', key);
           return caches.delete(key);
         }
@@ -40,57 +40,33 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event: serve assets from cache if available, otherwise fetch from network
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  // API calls: Network first, then cache
-  if (url.hostname.includes('supabase.co')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // If the request is successful, update the cache
-          if (response.ok) {
-            const responseToCache = response.clone();
-            caches.open(API_CACHE_NAME).then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // If network fails, try to serve from cache
-          return caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // If not in cache either, return a generic error response
-            return new Response(JSON.stringify({ error: 'offline' }), {
-              status: 503,
-              headers: { 'Content-Type': 'application/json' },
-            });
-          });
-        })
-    );
-    return;
-  }
-
-  // For other requests (app shell, images, etc.), use cache-first strategy
+  // Use cache-first strategy for all GET requests
   if (event.request.method === 'GET') {
     event.respondWith(
-      caches.open(CACHE_NAME).then(async (cache) => {
+      caches.open(DYNAMIC_CACHE_NAME).then(async (cache) => {
+        // 1. Try to get the resource from the dynamic cache
         const cachedResponse = await cache.match(event.request);
         if (cachedResponse) {
           return cachedResponse;
         }
-        
+
+        // 2. If not in cache, fetch from network
         try {
           const networkResponse = await fetch(event.request);
-          if (event.request.url.startsWith('http')) {
+          // Only cache successful responses for http/https requests
+          if (networkResponse.ok && event.request.url.startsWith('http')) {
             const responseToCache = networkResponse.clone();
             cache.put(event.request, responseToCache);
           }
           return networkResponse;
         } catch (error) {
           console.error('[ServiceWorker] Fetch failed:', error);
+
+          // 3. As a fallback, try to find in the static cache (for app shell files)
+          const staticCacheResponse = await caches.match(event.request, { cacheName: CACHE_NAME });
+          if (staticCacheResponse) return staticCacheResponse;
+
+          // 4. If nothing works, return a generic error response
           return new Response("Network error happened", {
             status: 408,
             headers: { "Content-Type": "text/plain" },
