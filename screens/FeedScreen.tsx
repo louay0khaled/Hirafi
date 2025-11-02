@@ -8,6 +8,7 @@ import { PlusIcon, LocationIcon, StarIcon, PhoneIcon, WhatsappIcon, CloseIcon, S
 import { GOVERNORATES } from '../constants';
 import SkeletonLoader from '../components/SkeletonLoader';
 import { useToast } from '../context/ToastContext';
+import ImageModal from '../components/ImageModal';
 
 const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
 const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZHRoPSI5MDAiLz48L3N2Zz4=';
@@ -57,7 +58,7 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
     )
 };
 
-const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => void; }> = ({ craftsman, onStartRating }) => (
+const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => void; onAvatarClick: (url: string) => void; }> = ({ craftsman, onStartRating, onAvatarClick }) => (
   <div>
     <div 
       className="w-full h-40 bg-cover bg-center rounded-t-lg bg-gray-200"
@@ -66,14 +67,17 @@ const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => vo
       aria-label={`${craftsman.name} header`}
     />
     <div className="p-4">
-        <div className="flex items-center mb-4">
+        <div className="flex items-start mb-4">
             <div 
-              className="w-20 h-20 rounded-full bg-cover bg-center border-4 border-white -mt-12 shadow-lg bg-gray-200"
+              className="w-28 h-28 rounded-full bg-cover bg-center border-4 border-white -mt-14 shadow-lg bg-gray-200 cursor-pointer transition-transform hover:scale-105"
               style={{ backgroundImage: `url(${craftsman.avatar_url || AVATAR_PLACEHOLDER})` }}
-              role="img"
-              aria-label={craftsman.name}
+              role="button"
+              tabIndex={0}
+              aria-label={`View profile picture of ${craftsman.name}`}
+              onClick={() => craftsman.avatar_url && onAvatarClick(craftsman.avatar_url)}
+              onKeyDown={(e) => (e.key === 'Enter' && craftsman.avatar_url) && onAvatarClick(craftsman.avatar_url)}
             />
-            <div className="ms-4">
+            <div className="ms-4 pt-2">
                 <h3 className="text-xl font-bold">{craftsman.name}</h3>
                 <p className="text-brand-700">{craftsman.craft}</p>
             </div>
@@ -92,14 +96,14 @@ const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => vo
         <h4 className="font-bold mt-6 mb-3 text-gray-800">للتواصل</h4>
         <div className="flex items-center space-s-3">
             <a
-              href={`tel:${craftsman.phone}`}
+              href={`tel:+963${craftsman.phone}`}
               className="flex-1 flex items-center justify-center text-sm bg-gray-100 text-brand-700 font-semibold py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors duration-300"
             >
               <PhoneIcon className="me-2 w-4 h-4"/>
               اتصال
             </a>
             <a
-              href={`https://wa.me/${craftsman.phone.replace(/[^0-9+]/g, '')}`}
+              href={`https://wa.me/963${craftsman.phone}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 flex items-center justify-center text-sm bg-green-500 text-white font-semibold py-2 px-3 rounded-lg hover:bg-green-600 transition-colors duration-300"
@@ -172,9 +176,6 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
         }
     };
 
-    // FIX: Replaced `Array.from` and `.map` with a `for` loop. This is more robust and avoids
-    // a potential type inference issue where files from the FileList were being treated as
-    // 'unknown', causing `URL.createObjectURL` to fail.
     const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
@@ -194,8 +195,6 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
     };
 
     const removePortfolioImage = (index: number) => {
-      // This is more complex now with files and URLs.
-      // For simplicity, we'll handle removing from existing portfolio URLs. New files can't be removed easily without more state.
       const imageUrlToRemove = portfolioPreviews[index];
       setPortfolioPreviews(prev => prev.filter((_, i) => i !== index));
       setFormData(prev => ({ ...prev, portfolio: prev.portfolio.filter(url => url !== imageUrlToRemove)}));
@@ -216,7 +215,11 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
             <div><label className="font-semibold">الاسم:</label><input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} required /></div>
             <div><label className="font-semibold">الحرفة:</label><input type="text" name="craft" value={formData.craft} onChange={handleChange} className={inputClass} required /></div>
             <div><label className="font-semibold">المحافظة:</label><select name="governorate" value={formData.governorate} onChange={handleChange} className={inputClass}>{GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
-            <div><label className="font-semibold">رقم الهاتف:</label><input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={inputClass} required /></div>
+            <div>
+              <label className="font-semibold">رقم الهاتف:</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={inputClass} required />
+              <p className="text-xs text-gray-500 mt-1">أدخل الرقم بدون رمز الدولة (مثال: 992705838)</p>
+            </div>
             <div><label className="font-semibold">نبذة:</label><textarea name="bio" value={formData.bio} onChange={handleChange} className={inputClass} required /></div>
             
             <div>
@@ -265,6 +268,8 @@ const FeedScreen: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [deletingCraftsman, setDeletingCraftsman] = useState<Craftsman | null>(null);
   const [ratingCraftsman, setRatingCraftsman] = useState<Craftsman | null>(null);
+  const [imageModalUrl, setImageModalUrl] = useState<string | null>(null);
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGovernorate, setSelectedGovernorate] = useState<Governorate | 'الكل'>('الكل');
@@ -394,7 +399,7 @@ const FeedScreen: React.FC = () => {
       )}
 
       <Modal isOpen={!!selectedCraftsman} onClose={() => setSelectedCraftsman(null)} title={selectedCraftsman?.name || ''}>
-        {selectedCraftsman && <CraftsmanDetails craftsman={selectedCraftsman} onStartRating={() => setRatingCraftsman(selectedCraftsman)} />}
+        {selectedCraftsman && <CraftsmanDetails craftsman={selectedCraftsman} onStartRating={() => setRatingCraftsman(selectedCraftsman)} onAvatarClick={setImageModalUrl} />}
       </Modal>
 
       <Modal 
@@ -419,6 +424,7 @@ const FeedScreen: React.FC = () => {
 
       {ratingCraftsman && <RatingModal craftsman={ratingCraftsman} onRate={handleRateSubmit} onClose={() => setRatingCraftsman(null)} />}
       
+      <ImageModal isOpen={!!imageModalUrl} imageUrl={imageModalUrl} onClose={() => setImageModalUrl(null)} />
     </div>
   );
 };

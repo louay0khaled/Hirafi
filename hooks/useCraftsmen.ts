@@ -92,6 +92,12 @@ export const useCraftsmen = () => {
         }
       }
 
+      // Normalize phone number before saving
+      let normalizedPhone = formData.phone.replace(/\D/g, ''); // Remove all non-digit characters
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = normalizedPhone.substring(1); // Remove leading zero if present
+      }
+
       // Explicitly construct the object to be inserted to avoid any ambiguity.
       const newCraftsmanData = {
           id: newCraftsmanId,
@@ -99,7 +105,7 @@ export const useCraftsmen = () => {
           craft: formData.craft,
           governorate: formData.governorate,
           bio: formData.bio,
-          phone: formData.phone,
+          phone: normalizedPhone,
           avatar_url,
           header_image_url,
           portfolio: portfolio_urls,
@@ -151,13 +157,19 @@ export const useCraftsmen = () => {
             }
         }
 
+        // Normalize phone number before saving
+        let normalizedPhone = formData.phone.replace(/\D/g, ''); // Remove all non-digit characters
+        if (normalizedPhone.startsWith('0')) {
+          normalizedPhone = normalizedPhone.substring(1); // Remove leading zero if present
+        }
+
         // Explicitly construct the object to be updated.
         const craftsmanUpdateData = {
           name: formData.name,
           craft: formData.craft,
           governorate: formData.governorate,
           bio: formData.bio,
-          phone: formData.phone,
+          phone: normalizedPhone,
           avatar_url,
           header_image_url,
           portfolio: updatedPortfolio,
