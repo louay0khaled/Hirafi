@@ -9,6 +9,9 @@ import { GOVERNORATES } from '../constants';
 import SkeletonLoader from '../components/SkeletonLoader';
 import Toast from '../components/Toast';
 
+const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
+const HEADER_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjkwMCIgdmlld0JveD0iMCAwIDE2MDAgOTAwIj48cmVjdCBmaWxsPSIjZTBlMGUwIiB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI5MDAiLz48L3N2Zz4=';
+
 const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => void; onClose: () => void; }> = ({ craftsman, onRate, onClose }) => {
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
@@ -56,10 +59,10 @@ const RatingModal: React.FC<{ craftsman: Craftsman; onRate: (rating: number) => 
 
 const CraftsmanDetails: React.FC<{ craftsman: Craftsman; onStartRating: () => void; }> = ({ craftsman, onStartRating }) => (
   <div>
-    <img src={craftsman.header_image_url} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg" />
+    <img src={craftsman.header_image_url || HEADER_PLACEHOLDER} alt={`${craftsman.name} header`} className="w-full h-40 object-cover rounded-t-lg bg-gray-200" />
     <div className="p-4">
         <div className="flex items-center mb-4">
-            <img src={craftsman.avatar_url} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg" />
+            <img src={craftsman.avatar_url || AVATAR_PLACEHOLDER} alt={craftsman.name} className="w-20 h-20 rounded-full object-cover border-4 border-white -mt-12 shadow-lg bg-gray-200" />
             <div className="ms-4">
                 <h3 className="text-xl font-bold">{craftsman.name}</h3>
                 <p className="text-brand-700">{craftsman.craft}</p>
@@ -185,10 +188,6 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!craftsman && !formData.avatarFile) {
-            alert("يرجى رفع الصورة الشخصية.");
-            return;
-        }
         setIsSaving(true);
         await onSave(formData);
         setIsSaving(false);

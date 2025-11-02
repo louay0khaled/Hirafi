@@ -56,7 +56,9 @@ export const useCraftsmen = () => {
         const { data: publicUrlData } = supabase.storage
           .from(BUCKET_NAME)
           .getPublicUrl(path);
-      return publicUrlData.publicUrl;
+      // By adding a timestamp, we can bust the cache when an image is updated.
+      // Supabase storage URLs are immutable, so a new file at the same path might be served from cache.
+      return `${publicUrlData.publicUrl}?t=${new Date().getTime()}`;
     }
     return null;
   };

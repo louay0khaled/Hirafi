@@ -10,6 +10,8 @@ interface CraftsmanCardProps {
   onDelete: (craftsman: Craftsman) => void;
 }
 
+const AVATAR_PLACEHOLDER = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2U1ZTdlYiI+PHBhdGggZD0iTTEyIDBDNS4zNzMgMCAwIDUuMzczIDAgMTJzNS4zNzMgMTIgMTIgMTIgMTItNS4zNzMgMTItMTJTMTguNjI3IDAgMTIgMHptMCA0YzIuMjEgMCA0IDEuNzkgNCA0cy0xLjc5IDQtNCA0LTQtMS43OS00LTQgMS43OS00IDQtNHptMCAxNGMtMi42NyAwLTggMS4zNC04IDR2MWgxNnYtMWMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=';
+
 const CraftsmanCard: React.FC<CraftsmanCardProps> = ({ craftsman, onView, onEdit, onDelete }) => {
   const { isAdmin } = useContext(AdminContext);
 
@@ -17,8 +19,8 @@ const CraftsmanCard: React.FC<CraftsmanCardProps> = ({ craftsman, onView, onEdit
     <div className="bg-white rounded-xl shadow-lg overflow-hidden m-2 relative transition-transform duration-200 hover:scale-105">
       <div className="flex items-center p-4" onClick={() => onView(craftsman)} style={{ cursor: 'pointer' }}>
         <img
-          className="w-20 h-20 rounded-full object-cover border-4 border-gray-200"
-          src={craftsman.avatar_url}
+          className="w-20 h-20 rounded-full object-cover border-4 border-gray-200 bg-gray-200"
+          src={craftsman.avatar_url || AVATAR_PLACEHOLDER}
           alt={craftsman.name}
         />
         <div className="ms-4 flex-1">
