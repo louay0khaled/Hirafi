@@ -154,13 +154,24 @@ const CraftsmanForm: React.FC<{ craftsman?: Craftsman; onSave: (data: CraftsmanF
         }
     };
 
+    // FIX: Replaced `Array.from` and `.map` with a `for` loop. This is more robust and avoids
+    // a potential type inference issue where files from the FileList were being treated as
+    // 'unknown', causing `URL.createObjectURL` to fail.
     const handlePortfolioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (files && files.length > 0) {
-            const newFiles = Array.from(files);
-            setFormData(prev => ({ ...prev, portfolioFiles: [...(prev.portfolioFiles || []), ...newFiles]}));
-            const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-            setPortfolioPreviews(prev => [...prev, ...newPreviews]);
+        if (files) {
+            const newFiles: File[] = [];
+            const newPreviews: string[] = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                newFiles.push(file);
+                newPreviews.push(URL.createObjectURL(file));
+            }
+
+            if (newFiles.length > 0) {
+                setFormData(prev => ({ ...prev, portfolioFiles: [...(prev.portfolioFiles || []), ...newFiles]}));
+                setPortfolioPreviews(prev => [...prev, ...newPreviews]);
+            }
         }
     };
 

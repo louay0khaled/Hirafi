@@ -16,6 +16,10 @@ export type CraftsmanFormData = Omit<Craftsman, 'id' | 'rating' | 'reviews' | 'a
 export const useCraftsmen = () => {
   const [craftsmen, setCraftsmen] = useState<Craftsman[]>([]);
   const [loading, setLoading] = useState(true);
+  // FIX: Changed bucket name. The "Bucket not found" error suggests a mismatch.
+  // It's likely the bucket was created as 'craftsmen-images' following earlier examples,
+  // without the '1.' prefix.
+  const BUCKET_NAME = 'craftsmen-images';
 
   const fetchCraftsmen = useCallback(async () => {
     setLoading(true);
@@ -25,9 +29,9 @@ export const useCraftsmen = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching craftsmen:', error.message);
-    } else {
-      setCraftsmen(data as Craftsman[]);
+      console.error('Error fetching craftsmen:', error);
+    } else if (data) {
+      setCraftsmen(data);
     }
     setLoading(false);
   }, []);
@@ -36,129 +40,169 @@ export const useCraftsmen = () => {
     fetchCraftsmen();
   }, [fetchCraftsmen]);
 
-  const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
-    const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
-      cacheControl: '3600',
-      upsert: true, // Overwrite file if it exists
-    });
+  const uploadFile = async (file: File, path: string) => {
+    const { data, error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: true,
+      });
+
     if (error) {
-      console.error(`Error uploading file to ${path}:`, error.message);
-      return null;
+      // Use the full error object for better debugging in the console.
+      console.error(`Error uploading file to ${path}:`, error);
+      throw error;
     }
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path);
-    return publicUrl;
+
+    if (data) {
+        const { data: publicUrlData } = supabase.storage
+          .from(BUCKET_NAME)
+          .getPublicUrl(path);
+      // Remove Supabase's 't' query parameter for a clean, permanent URL
+      const url = new URL(publicUrlData.publicUrl);
+      url.searchParams.delete('t');
+      return url.toString();
+    }
+    return null;
   };
 
   const addCraftsman = async (formData: CraftsmanFormData) => {
-    const craftsmanId = crypto.randomUUID();
-    let avatarUrl = '';
-    let headerImageUrl = '';
-    const portfolioUrls: string[] = [];
-  
-    if (formData.avatarFile) {
-      avatarUrl = await uploadFile(formData.avatarFile, 'craftsmen-images', `public/avatars/${craftsmanId}`) || '';
-    }
-    if (formData.headerFile) {
-      headerImageUrl = await uploadFile(formData.headerFile, 'craftsmen-images', `public/headers/${craftsmanId}`) || '';
-    }
-    if (formData.portfolioFiles && formData.portfolioFiles.length > 0) {
-      for (const file of formData.portfolioFiles) {
-        const url = await uploadFile(file, 'craftsmen-images', `public/portfolio/${craftsmanId}/${file.name}`);
-        if (url) portfolioUrls.push(url);
-      }
-    }
+    try {
+      const newCraftsmanId = crypto.randomUUID();
+      let avatar_url = '';
+      let header_image_url = '';
 
-    const newCraftsmanData = {
-      id: craftsmanId,
-      name: formData.name,
-      craft: formData.craft,
-      governorate: formData.governorate,
-      bio: formData.bio,
-      phone: formData.phone,
-      avatar_url: avatarUrl,
-      header_image_url: headerImageUrl,
-      portfolio: portfolioUrls,
-      rating: 0,
-      reviews: 0,
-    };
-    
-    const { data, error } = await supabase.from('craftsmen').insert([newCraftsmanData]).select();
-    
-    if (error) {
-      console.error('Error adding craftsman:', error.message);
-    } else if (data) {
-      setCraftsmen(prev => [data[0] as Craftsman, ...prev]);
-    }
-  };
-
-  const updateCraftsman = async (craftsmanId: string, formData: CraftsmanFormData) => {
-      let { avatar_url, header_image_url, portfolio } = formData;
-  
       if (formData.avatarFile) {
-        avatar_url = await uploadFile(formData.avatarFile, 'craftsmen-images', `public/avatars/${craftsmanId}`) || formData.avatar_url;
+        const fileExt = formData.avatarFile.name.split('.').pop();
+        const avatarPath = `public/avatars/${newCraftsmanId}.${fileExt}`;
+        avatar_url = await uploadFile(formData.avatarFile, avatarPath) ?? '';
       }
+
       if (formData.headerFile) {
-        header_image_url = await uploadFile(formData.headerFile, 'craftsmen-images', `public/headers/${craftsmanId}`) || formData.header_image_url;
+        const fileExt = formData.headerFile.name.split('.').pop();
+        const headerPath = `public/headers/${newCraftsmanId}.${fileExt}`;
+        header_image_url = await uploadFile(formData.headerFile, headerPath) ?? '';
       }
       
-      const newPortfolioUrls: string[] = [];
+      const portfolio_urls: string[] = [];
       if (formData.portfolioFiles && formData.portfolioFiles.length > 0) {
         for (const file of formData.portfolioFiles) {
-          const url = await uploadFile(file, 'craftsmen-images', `public/portfolio/${craftsmanId}/${file.name}`);
-          if (url) newPortfolioUrls.push(url);
+          const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
+          const portfolioPath = `public/portfolios/${newCraftsmanId}/${fileName}`;
+          const url = await uploadFile(file, portfolioPath);
+          if (url) portfolio_urls.push(url);
         }
       }
 
-      const updatedData = {
-        name: formData.name,
-        craft: formData.craft,
-        governorate: formData.governorate,
-        bio: formData.bio,
-        phone: formData.phone,
-        avatar_url,
-        header_image_url,
-        portfolio: [...portfolio, ...newPortfolioUrls] // Combine old and new portfolio images
-      };
+      const { avatarFile, headerFile, portfolioFiles, ...craftsmanData } = formData;
+      
+      const { error } = await supabase
+        .from('craftsmen')
+        .insert([{
+          ...craftsmanData,
+          id: newCraftsmanId,
+          avatar_url,
+          header_image_url,
+          portfolio: portfolio_urls,
+        }]);
+      
+      if (error) {
+        console.error('Error adding craftsman:', error.message);
+        throw error;
+      }
+      
+      // **FIX:** Refetch all data to solve the schema cache issue and ensure UI consistency.
+      await fetchCraftsmen(); 
 
-      const { data, error } = await supabase.from('craftsmen').update(updatedData).eq('id', craftsmanId).select();
+    } catch (error) {
+      // FIX: Improved error logging to avoid '[object Object]'.
+      console.error('An error occurred in addCraftsman:', error instanceof Error ? error.message : error, error);
+      throw error;
+    }
+  };
+
+  const updateCraftsman = async (id: string, formData: CraftsmanFormData) => {
+    try {
+        let avatar_url = formData.avatar_url;
+        let header_image_url = formData.header_image_url;
+
+        if (formData.avatarFile) {
+            const fileExt = formData.avatarFile.name.split('.').pop();
+            const avatarPath = `public/avatars/${id}.${fileExt}`;
+            avatar_url = await uploadFile(formData.avatarFile, avatarPath) ?? avatar_url;
+        }
+
+        if (formData.headerFile) {
+            const fileExt = formData.headerFile.name.split('.').pop();
+            const headerPath = `public/headers/${id}.${fileExt}`;
+            header_image_url = await uploadFile(formData.headerFile, headerPath) ?? header_image_url;
+        }
+        
+        let updatedPortfolio = [...formData.portfolio]; 
+        if (formData.portfolioFiles && formData.portfolioFiles.length > 0) {
+            for (const file of formData.portfolioFiles) {
+              const fileName = `${crypto.randomUUID()}.${file.name.split('.').pop()}`;
+              const portfolioPath = `public/portfolios/${id}/${fileName}`;
+              const url = await uploadFile(file, portfolioPath);
+              if (url) updatedPortfolio.push(url);
+            }
+        }
+
+        const { avatarFile, headerFile, portfolioFiles, ...craftsmanData } = formData;
+
+        const { error } = await supabase
+            .from('craftsmen')
+            .update({
+                ...craftsmanData,
+                avatar_url,
+                header_image_url,
+                portfolio: updatedPortfolio,
+            })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error updating craftsman:', error);
+            throw error;
+        }
+
+        // **FIX:** Refetch all data for robustness.
+        await fetchCraftsmen();
+
+    } catch (error) {
+        // FIX: Improved error logging to avoid '[object Object]'.
+        console.error('An error occurred in updateCraftsman:', error instanceof Error ? error.message : error, error);
+        throw error;
+    }
+  };
+
+  const deleteCraftsman = async (id: string) => {
+    // Note: This does not delete associated storage files.
+    const { error } = await supabase
+        .from('craftsmen')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting craftsman:', error);
+    } else {
+        // **FIX:** Refetch for consistency.
+        await fetchCraftsmen();
+    }
+  };
+
+  const rateCraftsman = async (id: string, newRating: number) => {
+      const { error } = await supabase.rpc('rate_craftsman', {
+          craftsman_id: id,
+          new_rating: newRating,
+      });
 
       if (error) {
-        console.error('Error updating craftsman:', error.message);
-      } else if (data) {
-        setCraftsmen(prev => prev.map(c => c.id === craftsmanId ? data[0] as Craftsman : c));
+          console.error('Error rating craftsman:', error);
+      } else {
+          // RPC updates data, so we must refetch to see the change.
+          await fetchCraftsmen();
       }
   };
 
-
-  const deleteCraftsman = async (craftsmanId: string) => {
-    // Note: Deleting files from storage can be added here if needed
-    const { error } = await supabase.from('craftsmen').delete().eq('id', craftsmanId);
-    if (error) {
-      console.error('Error deleting craftsman:', error.message);
-    } else {
-      setCraftsmen(prev => prev.filter(c => c.id !== craftsmanId));
-    }
-  };
-
-  const rateCraftsman = async (craftsmanId: string, newRating: number) => {
-    const craftsman = craftsmen.find(c => c.id === craftsmanId);
-    if (!craftsman) return;
-
-    const totalRating = craftsman.rating * craftsman.reviews;
-    const newReviews = craftsman.reviews + 1;
-    const newAverageRating = (totalRating + newRating) / newReviews;
-
-    const { error } = await supabase
-      .from('craftsmen')
-      .update({ rating: newAverageRating, reviews: newReviews })
-      .eq('id', craftsmanId);
-      
-    if (error) {
-      console.error('Error rating craftsman:', error.message);
-    } else {
-      fetchCraftsmen(); // Re-fetch to get the most accurate data
-    }
-  };
-
-  return { craftsmen, loading, addCraftsman, updateCraftsman, deleteCraftsman, rateCraftsman };
+  return { craftsmen, loading, fetchCraftsmen, addCraftsman, updateCraftsman, deleteCraftsman, rateCraftsman };
 };
